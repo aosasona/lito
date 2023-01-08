@@ -1,15 +1,15 @@
-admin:
-  path: /admin
-  password: {{ ADMIN_PASSWORD }}
+root:
+  host: http://localhost
+  port: 8080
 services:
-  - service-one:
-      name: service-one
+  - app-one:
+      name: app-one
       host: localhost
       port: 8084
       health:
         path: /status
-  - service two:
-      name: service-two
+  - app-two:
+      name: app-two
       host: localhost
       port: 8085
       health:

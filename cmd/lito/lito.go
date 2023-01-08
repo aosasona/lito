@@ -2,6 +2,7 @@ package lito
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/aosasona/lito/pkg/http_func"
 )
@@ -39,8 +40,17 @@ func validateProxyInfo(host string, port int) error {
 		return errors.New("host is empty")
 	}
 
+	if !strings.HasPrefix(host, "http://") && !strings.HasPrefix(host, "https://") {
+		return errors.New("host protocol not defined (add http:// or https://)")
+	}
+
 	if port == 0 {
 		return errors.New("port is empty")
+	}
+
+	freePort := http_func.IsPortAvailable(host, port)
+	if !freePort {
+		return errors.New("port is not available")
 	}
 
 	return nil
