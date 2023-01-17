@@ -1,10 +1,10 @@
-package lito
+package main
 
 import (
 	"errors"
 	"strings"
 
-	"github.com/aosasona/lito/pkg/http_func"
+	"github.com/aosasona/lito/pkg/httpfunc"
 )
 
 type Proxy struct {
@@ -23,7 +23,7 @@ func NewProxy(host string, port int, configPath string) (*Proxy, error) {
 		return nil, err
 	}
 
-	portIsAvailable := http_func.IsPortAvailable(host, port)
+	portIsAvailable := httpfunc.IsPortAvailable(host, port)
 	if !portIsAvailable {
 		return nil, errors.New("port is not available")
 	}
@@ -48,7 +48,7 @@ func validateProxyInfo(host string, port int) error {
 		return errors.New("port is empty")
 	}
 
-	freePort := http_func.IsPortAvailable(host, port)
+	freePort := httpfunc.IsPortAvailable(host, port)
 	if !freePort {
 		return errors.New("port is not available")
 	}

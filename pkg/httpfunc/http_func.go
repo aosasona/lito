@@ -1,4 +1,4 @@
-package http_func
+package httpfunc
 
 import (
 	"fmt"
