@@ -2,28 +2,31 @@ package main
 
 import (
 	"flag"
-	"fmt"
-	"log"
+	"sync"
 
 	"github.com/aosasona/lito/cmd/lito"
-	"github.com/aosasona/lito/pkg/config"
-	"github.com/spf13/viper"
+	"github.com/aosasona/lito/internal/db"
 )
 
 func main() {
-	configPath := flag.String("config", ".", "Path to lito's config file")
 
+	port := flag.Int("p", 80, "Port to run Lito on")
 	flag.Parse()
 
-	err := config.Load(*configPath)
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
+	_ = make(chan error)
+	db := db.Init()
 
-	proxy := lito.Proxy{
-		Host: viper.GetString("proxy.host"),
-		Port: viper.GetInt("proxy.port"),
-	}
+	lito, _ := lito.New(db, *port)
 
-	fmt.Print(proxy)
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err := lito.Run(); err != nil {
+			panic(err)
+		}
+	}()
+
+	wg.Wait()
 }
