@@ -13,7 +13,7 @@ func main() {
 	port := flag.Int("p", 80, "Port to run Lito on")
 	flag.Parse()
 
-	_ = make(chan error)
+	loggerChannel := make(chan error)
 	db := db.Init()
 
 	lito, _ := lito.New(db, *port)
@@ -28,5 +28,8 @@ func main() {
 		}
 	}()
 
-	wg.Wait()
+	go func() {
+		wg.Wait()
+		close(loggerChannel)
+	}()
 }
