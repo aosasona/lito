@@ -1,0 +1,26 @@
+{
+  "name": "external-service-a",
+  "type": "pass_through",
+  "allow_content_types": [
+    "application/json"
+  ],
+  "servers": [
+    "127.0.0.1:12000",
+    "127.0.0.1:12001",
+    "127.0.0.1:12002"
+  ],
+  "protocols": [
+    "http",
+    "websocket"
+  ],
+  "allowed_origins": [
+    "http://localhost"
+  ],
+  "external": true,
+  "health_check_endpoint": "/health",
+  "allowed_methods": [
+    "*"
+  ],
+  "enable_logging": true,
+  "enable_discovery": true
+}
