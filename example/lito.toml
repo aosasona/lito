@@ -15,7 +15,7 @@ storage_driver = "db" # db or file
 refresh_interval = 60 # seconds
 not_found = {
   type = "json",
-  content = "{\"error\":\"no servers configured\"}"}
+  content = "{\"error\":\"no config found for this server\"}"}
 }
 
 [proxy.discovery]
