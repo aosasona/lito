@@ -1,10 +1,15 @@
 package config
 
+import (
+	"fmt"
+	"strings"
+
+	"github.com/spf13/viper"
+)
+
 type LitoConfig struct {
-	Admin     AdminConfig     `mapstructure:"admin"`
-	Proxy     ProxyConfig     `mapstructure:"proxy"`
-	Routes    RoutesConfig    `mapstructure:"proxy.routes"`
-	Discovery DiscoveryConfig `mapstructure:"proxy.discovery"`
+	Admin AdminConfig `mapstructure:"admin"`
+	Proxy ProxyConfig `mapstructure:"proxy"`
 }
 
 type AdminConfig struct {
@@ -14,16 +19,19 @@ type AdminConfig struct {
 }
 
 type ProxyConfig struct {
-	Host      string `mapstructure:"host"`
-	Ports     []int  `mapstructure:"ports"`
-	LogDir    string `mapstructure:"log_dir"`
-	EnableTLS bool   `mapstructure:"enable_tls"`
+	Host        string          `mapstructure:"host"`
+	Ports       []uint          `mapstructure:"ports"`
+	LogDir      string          `mapstructure:"log_dir"`
+	EnableTLS   bool            `mapstructure:"enable_tls"`
+	WatchConfig bool            `mapstructure:"watch_config"`
+	Services    ServicesConfig  `mapstructure:"services"`
+	Discovery   DiscoveryConfig `mapstructure:"discovery"`
 }
 
-type RoutesConfig struct {
+type ServicesConfig struct {
 	Data            string         `mapstructure:"data"`
 	StorageDriver   string         `mapstructure:"storage_driver"`
-	RefreshInterval int            `mapstructure:"refresh_interval"`
+	RefreshInterval uint           `mapstructure:"refresh_interval"`
 	NotFound        NotFoundConfig `mapstructure:"not_found"`
 }
 
@@ -35,11 +43,30 @@ type NotFoundConfig struct {
 type DiscoveryConfig struct {
 	Path            string `mapstructure:"path"`
 	AllowExternal   bool   `mapstructure:"allow_external"`
-	RefreshInterval int    `mapstructure:"refresh_interval"`
+	RefreshInterval uint   `mapstructure:"refresh_interval"`
 }
 
-func parseLitoConfig() (*LitoConfig, error) {
-	var config LitoConfig
+func loadLitoConfig(configPath string) (*LitoConfig, error) {
+	config := new(LitoConfig)
 
-	return &config, nil
+	v := viper.New()
+	v.SetConfigName("lito")
+	v.SetConfigType("toml")
+	v.AddConfigPath(strings.TrimSuffix(configPath, "/"))
+	v.AddConfigPath(".")
+
+	// TODO: Add hot-reloading config file on change
+
+	if err := v.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			return nil, fmt.Errorf("unable to read config from file: %v", err.Error())
+		}
+		return nil, err
+	}
+
+	if err := v.Unmarshal(config); err != nil {
+		return nil, fmt.Errorf("unable to load marshal into struct: %v", err.Error())
+	}
+
+	return config, nil
 }
