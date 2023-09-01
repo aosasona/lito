@@ -6,7 +6,6 @@ import (
 
 func main() {
 	lito, err := lito.New(lito.Config{
-		DataDir:   "example/data",
 		ConfigDir: "example",
 	})
 	if err != nil {

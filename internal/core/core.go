@@ -6,9 +6,9 @@ type Core struct {
 	config *config.Config
 }
 
-func New(dataDir, configDir string) (*Core, error) {
+func New(configDir string) (*Core, error) {
 	core := new(Core)
-	conf, err := config.Load(config.InitConfig{DataDir: dataDir, ConfigDir: configDir})
+	conf, err := config.Load(config.InitConfig{ConfigDir: configDir})
 	if err != nil {
 		return nil, err
 	}

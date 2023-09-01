@@ -11,17 +11,15 @@ type Lito struct {
 }
 
 type Config struct {
-	DataDir   string
 	ConfigDir string
 }
 
 var DefaultConfig = Config{
-	DataDir:   "./data",
 	ConfigDir: ".",
 }
 
 func New(c Config) (*Lito, error) {
-	litoCore, err := core.New(c.DataDir, c.ConfigDir)
+	litoCore, err := core.New(c.ConfigDir)
 	if err != nil {
 		return nil, err
 	}
