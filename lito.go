@@ -1,44 +1,27 @@
 package lito
 
-import (
-	"fmt"
-
-	"github.com/aosasona/lito/internal/core"
-)
-
 type Lito struct {
-	core *core.Core
+	config *Config
 }
 
-type Config struct {
-	ConfigDir string
+type Opts struct {
+	// Config is the configuration for the proxy, if not loading from the filesystem.
+	Config *Config
+
+	// DataDir is the directory to load and store configuration from, will be created if it does not exist.
+	ProxyDir string
+
+	// RootFile is the file to load and store admin configuration from.
+	RootFilePath string
 }
 
-var DefaultConfig = Config{
-	ConfigDir: ".",
-}
-
-func New(c Config) (*Lito, error) {
-	litoCore, err := core.New(c.ConfigDir)
-	if err != nil {
-		return nil, err
+func New(opts *Opts) (*Lito, error) {
+	if opts.Config == nil && opts.ProxyDir == "" {
+		return nil, ErrNoConfigSpecified
 	}
-	return &Lito{
-		core: litoCore,
-	}, nil
-}
-
-func (l *Lito) watchConfig() error {
-	fmt.Println("watching config")
-	return nil
+	return &Lito{}, nil
 }
 
 func (l *Lito) Run() error {
-	if l.core.Config().Lito().Proxy.WatchConfig {
-		err := l.watchConfig()
-		if err != nil {
-			fmt.Println("failed to watch config: ", err)
-		}
-	}
 	return nil
 }
