@@ -1,25 +1,29 @@
 package lito
 
+import "go.trulyao.dev/lito/pkg/logger"
+
 type Lito struct {
-	config *Config
+	Config     *Config
+	LogHandler logger.Logger
 }
 
 type Opts struct {
-	// Config is the configuration for the proxy, if not loading from the filesystem.
-	Config *Config
-
-	// DataDir is the directory to load and store configuration from, will be created if it does not exist.
-	ProxyDir string
-
-	// RootFile is the file to load and store admin configuration from.
-	RootFilePath string
+	Lito
 }
 
 func New(opts *Opts) (*Lito, error) {
-	if opts.Config == nil && opts.ProxyDir == "" {
+	if opts.Config == nil {
 		return nil, ErrNoConfigSpecified
 	}
-	return &Lito{}, nil
+
+	if opts.LogHandler == nil {
+		opts.LogHandler = &logger.DefaultLogHandler
+	}
+
+	return &Lito{
+		Config:     opts.Config,
+		LogHandler: opts.LogHandler,
+	}, nil
 }
 
 func (l *Lito) Run() error {
