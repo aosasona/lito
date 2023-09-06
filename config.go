@@ -8,25 +8,6 @@ const (
 	StorageSQLite3 Storage = "sqlite"
 )
 
-// TODO: change to CertStatus
-type DomainStatus string
-
-const (
-	DomainStatusAwaitingDNS DomainStatus = "awaiting_dns_configuration"
-	DomainStatusActiveCert  DomainStatus = "active_cert"
-	DomainStatusIssuingCert DomainStatus = "issuing_cert"
-	DomainStatusError       DomainStatus = "error"
-	DomainStatusUnknown     DomainStatus = "unknown"
-)
-
-type Domain struct {
-	// Name is the domain name
-	Name string `json:"name"`
-
-	// Status is the status of the domain (eg. awaiting_dns_configuration if the domain has the wrong DNS records)
-	Status DomainStatus `json:"status"`
-}
-
 type Service struct {
 	// TargetHost is the host that the service will forward to
 	TargetHost string `json:"host"`

@@ -12,12 +12,17 @@ func main() {
 		Enabled:           gots.Bool(true),
 		PreferUnknown:     gots.Bool(true),
 		UseTypeForObjects: gots.Bool(true),
-		OutputFile:        gots.String("interfaces/ts/lito.ts"),
+		OutputFile:        gots.String("interfaces/lito.ts/lito.ts"),
 	})
 
 	g.Register(
 		lito.Admin{},
 		lito.Service{},
+		lito.DomainStatusCert{},
+		lito.DomainStatusDNS{},
+		lito.DomainStatus{},
+		lito.Retry{},
+		lito.Domain{},
 		lito.Proxy{},
 		lito.Config{},
 	)
