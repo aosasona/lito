@@ -13,7 +13,7 @@ func main() {
 		Enabled:           gots.Bool(true),
 		PreferUnknown:     gots.Bool(true),
 		UseTypeForObjects: gots.Bool(true),
-		OutputFile:        gots.String("interfaces/lito.ts/lito.ts"),
+		OutputFile:        gots.String("../lito-ts/lito.ts"),
 	})
 
 	g.Register(

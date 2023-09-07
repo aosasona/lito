@@ -1,3 +1,0 @@
-[submodule "interfaces/lito.ts"]
-	path = interfaces/lito.ts
-	url = git@github.com:aosasona/lito.ts.git
