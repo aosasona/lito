@@ -12,4 +12,7 @@ type Service struct {
 
 	// Domains is a list of domains that the service will respond to
 	Domains []Domain `json:"domains"`
+
+	// StripHeaders is a list of headers that will be stripped from the request before forwarding
+	StripHeaders []string `json:"strip_headers,omitempty"`
 }
