@@ -5,6 +5,7 @@ import (
 
 	"github.com/aosasona/gots/v2"
 	"go.trulyao.dev/lito"
+	"go.trulyao.dev/lito/pkg/types"
 )
 
 func main() {
@@ -16,14 +17,14 @@ func main() {
 	})
 
 	g.Register(
-		lito.Admin{},
-		lito.Service{},
-		lito.DomainStatusCert{},
-		lito.DomainStatusDNS{},
-		lito.DomainStatus{},
-		lito.Retry{},
-		lito.Domain{},
-		lito.Proxy{},
+		types.Admin{},
+		types.Service{},
+		types.DomainStatusCert{},
+		types.DomainStatusDNS{},
+		types.DomainStatus{},
+		types.Retry{},
+		types.Domain{},
+		types.Proxy{},
 		lito.Config{},
 	)
 

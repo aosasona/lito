@@ -1,4 +1,4 @@
-package lito
+package types
 
 // Will be handled by certmagic
 type Retry struct {
@@ -24,7 +24,6 @@ const (
 
 type DomainStatusCert struct {
 	Value       CertStatus `json:"value" ts:"type:'issued' | 'pending' | 'failed'"`
-	Retry       Retry      `json:"retry"`
 	LastUpdated int        `json:"last_updated"`
 }
 
