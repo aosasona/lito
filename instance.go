@@ -4,11 +4,13 @@ package lito
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"go.trulyao.dev/lito/pkg/logger"
 	"go.trulyao.dev/lito/pkg/types"
 )
 
+// String returns the JSON representation of the Lito config
 func (l *Lito) String() (string, error) {
 	s, err := json.Marshal(l.Config)
 	if err != nil {
@@ -32,4 +34,14 @@ func (l *Lito) Lock() { l.Config.mutex.Lock() }
 
 func (l *Lito) Unlock() { l.Config.mutex.Unlock() }
 
-func (l *Lito) Commit() error { return l.StorageHandler.Persist() }
+func (l *Lito) Commit() error {
+	if l.Config.Proxy.Storage == types.StorageMemory {
+		l.LogHandler.Warn("Storage is set to memory, skipping config persistence - this is NOT recommended for production use")
+		return nil
+	}
+
+	l.LogHandler.Info(fmt.Sprintf("Persisting config to %s", l.Config.Proxy.Storage))
+	l.StorageHandler.Persist()
+
+	return nil
+}

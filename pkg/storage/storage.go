@@ -1,6 +1,10 @@
 package storage
 
-import "go.trulyao.dev/lito/pkg/types"
+import (
+	"fmt"
+
+	"go.trulyao.dev/lito/pkg/types"
+)
 
 type store struct {
 	instance types.Instance
@@ -15,6 +19,12 @@ type Storage interface {
 }
 
 // This needs to be setup to track the main instances of the Lito struct fields
-func Init(i types.Instance) {
-	s.instance = i
+func New(instance types.Instance) (Storage, error) {
+	switch instance.GetProxyConfig().Storage {
+	case types.StorageJSON:
+		s.instance = instance
+		return NewJSONStorage(), nil
+	default:
+		return nil, fmt.Errorf("Unknown storage type: %s", instance.GetProxyConfig().Storage)
+	}
 }

@@ -11,9 +11,11 @@ type Instance interface {
 	GetServicesConfig() map[string]Service
 	GetProxyConfig() *Proxy
 
-	// Actions
+	// Get config as JSON string
 	String() (string, error)
+	// Save current config to disk
 	Commit() error
+	// Reload config from disk
 	Reload() error
 
 	// Mutex functions

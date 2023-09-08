@@ -14,9 +14,10 @@ var c = controller{}
 // This needs to be setup to track the main instances of the Lito struct fields
 func Init(i types.Instance) {
 	c.instance = i
+	fillDefaults()
 }
 
-func FillDefaults() {
+func fillDefaults() {
 	fillAdminDefaults()
 	fillProxyDefaults()
 }

@@ -2,6 +2,7 @@ package lito
 
 import (
 	"fmt"
+	"sync"
 
 	"go.trulyao.dev/lito/pkg/controllers"
 	"go.trulyao.dev/lito/pkg/logger"
@@ -9,6 +10,13 @@ import (
 	"go.trulyao.dev/lito/pkg/types"
 	"go.trulyao.dev/lito/pkg/utils"
 )
+
+type Config struct {
+	Admin    types.Admin              `json:"admin"`
+	Services map[string]types.Service `json:"services"`
+	Proxy    types.Proxy              `json:"proxy"`
+	mutex    sync.RWMutex
+}
 
 type Lito struct {
 	Config         *Config
@@ -34,19 +42,15 @@ func New(opts *Opts) (*Lito, error) {
 }
 
 func (l *Lito) setup() {
+	var err error
+
 	controllers.Init(l)
-	controllers.FillDefaults()
 
-	storage.Init(l)
-
-	switch l.Config.Proxy.Storage {
-	case types.StorageJSON:
-		l.StorageHandler = storage.NewJSONStorage(l.Config.Proxy.ConfigPath)
-	default:
-		l.LogHandler.Fatal(fmt.Sprintf("Unknown storage type: %s", l.Config.Proxy.Storage))
+	if l.StorageHandler, err = storage.New(l); err != nil {
+		l.LogHandler.Fatal(fmt.Sprintf("Failed to initialize storage handler: %s", err.Error()))
 	}
 
-	if err := l.StorageHandler.Load(); err != nil {
+	if err = l.StorageHandler.Load(); err != nil {
 		l.LogHandler.Fatal(fmt.Sprintf("Failed to load config: %s", err.Error()))
 	}
 }
