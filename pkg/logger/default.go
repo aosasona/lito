@@ -27,6 +27,10 @@ func New(level LogLevel, path string) Logger {
 	}
 }
 
+func (l *DefaultLogger) SetLogFile(path string) {
+	l.Path = path
+}
+
 func (l *DefaultLogger) Log(msg string, params ...Param) {
 	l.log(l.DefaultLogLevel, msg, params)
 }

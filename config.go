@@ -12,7 +12,3 @@ type Config struct {
 	Proxy    types.Proxy              `json:"proxy"`
 	mutex    sync.RWMutex
 }
-
-func LoadFromDirectory(path string) (*Config, error) {
-	return nil, nil
-}

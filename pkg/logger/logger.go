@@ -33,6 +33,8 @@ type (
 		Log(msg string, params ...Param)
 
 		Sync() error
+
+		SetLogFile(path string)
 	}
 
 	Param struct {

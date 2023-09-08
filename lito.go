@@ -3,20 +3,24 @@ package lito
 import (
 	"fmt"
 
+	"go.trulyao.dev/lito/pkg/controllers"
 	"go.trulyao.dev/lito/pkg/logger"
+	"go.trulyao.dev/lito/pkg/storage"
+	"go.trulyao.dev/lito/pkg/types"
 	"go.trulyao.dev/lito/pkg/utils"
 )
 
 type Lito struct {
-	Config     *Config
-	LogHandler logger.Logger
+	Config         *Config
+	LogHandler     logger.Logger
+	StorageHandler storage.Storage
 }
 
-type Opts = Lito
+type Opts = Lito // alias
 
 func New(opts *Opts) (*Lito, error) {
 	if opts.Config == nil {
-		return nil, ErrNoConfigSpecified
+		return nil, utils.ErrNoConfigSpecified
 	}
 
 	if opts.LogHandler == nil {
@@ -29,32 +33,28 @@ func New(opts *Opts) (*Lito, error) {
 	}, nil
 }
 
+func (l *Lito) setup() {
+	controllers.Init(l)
+	controllers.FillDefaults()
+
+	storage.Init(l)
+
+	switch l.Config.Proxy.Storage {
+	case types.StorageJSON:
+		l.StorageHandler = storage.NewJSONStorage(l.Config.Proxy.ConfigPath)
+	default:
+		l.LogHandler.Fatal(fmt.Sprintf("Unknown storage type: %s", l.Config.Proxy.Storage))
+	}
+
+	if err := l.StorageHandler.Load(); err != nil {
+		l.LogHandler.Fatal(fmt.Sprintf("Failed to load config: %s", err.Error()))
+	}
+}
+
 func (l *Lito) Run() error {
-	if l.Config.Proxy.HTTPPort <= 0 {
-		l.Config.Proxy.HTTPPort = 80
-	}
+	l.setup()
 
-	if l.Config.Proxy.HTTPSPort <= 0 {
-		l.Config.Proxy.HTTPSPort = 443
-	}
-
-	l.LogHandler.Info("Starting Lito", logger.Param{Key: "http", Value: l.Config.Proxy.HTTPPort}, logger.Param{Key: "https", Value: l.Config.Proxy.HTTPSPort})
-
-	if l.Config.Admin.Enabled {
-		if l.Config.Admin.Port <= 0 {
-			l.Config.Admin.Port = 2023
-		}
-
-		if l.Config.Admin.APIKey == "" {
-			l.LogHandler.Warn("Admin API key not specified, generating a random one")
-			l.Config.Admin.APIKey = utils.GenerateAPIKey()
-			l.LogHandler.Info(fmt.Sprintf("Admin API key: %s - this will not be shown again, please store it somewhere safe or change it via the admin API", l.Config.Admin.APIKey))
-		}
-
-		if l.Config.Admin.Port > 0 {
-			l.LogHandler.Info(fmt.Sprintf("Admin API listening on port %d", l.Config.Admin.Port))
-		}
-	}
+	l.LogHandler.Info(fmt.Sprintf("Starting Lito on port :%d", l.Config.Proxy.HTTPPort), logger.Param{Key: "http", Value: l.Config.Proxy.HTTPPort}, logger.Param{Key: "https", Value: l.Config.Proxy.HTTPSPort})
 
 	return nil
 }

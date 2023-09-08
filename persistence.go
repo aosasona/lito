@@ -16,9 +16,7 @@ func (l *Lito) persistConfig() error {
 	l.Config.mutex.Lock()
 	defer l.Config.mutex.Unlock()
 
-	return nil
-}
+	l.StorageHandler.Persist()
 
-func (l *Lito) persistConfigJSON() error {
 	return nil
 }
