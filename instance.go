@@ -11,13 +11,36 @@ import (
 )
 
 // String returns the JSON representation of the Lito config
-func (l *Lito) String() (string, error) {
+func (l *Lito) MarshalConfig() (string, error) {
 	s, err := json.Marshal(l.Config)
 	if err != nil {
 		return "", err
 	}
 
 	return string(s), nil
+}
+
+func (l *Lito) UnmarshalConfig(data []byte) (*types.Config, error) {
+	c := new(types.Config)
+	err := json.Unmarshal(data, c)
+	if err != nil {
+		return nil, err
+	}
+
+	return c, nil
+}
+
+func (l *Lito) UpdateConfig(c *types.Config) error {
+	if c == nil {
+		return fmt.Errorf("config is nil")
+	}
+
+	// We keep the old struct and the current lock
+	l.Config.Admin = c.Admin
+	l.Config.Proxy = c.Proxy
+	l.Config.Services = c.Services
+
+	return nil
 }
 
 func (l *Lito) GetLogHandler() logger.Logger { return l.LogHandler }
@@ -30,18 +53,10 @@ func (l *Lito) GetProxyConfig() *types.Proxy { return &l.Config.Proxy }
 
 func (l *Lito) Reload() error { return l.StorageHandler.Load() }
 
-func (l *Lito) Lock() { l.Config.mutex.Lock() }
+func (l *Lito) Lock() { l.Config.Lock() }
 
-func (l *Lito) Unlock() { l.Config.mutex.Unlock() }
+func (l *Lito) Unlock() { l.Config.Unlock() }
 
 func (l *Lito) Commit() error {
-	if l.Config.Proxy.Storage == types.StorageMemory {
-		l.LogHandler.Warn("Storage is set to memory, skipping config persistence - this is NOT recommended for production use")
-		return nil
-	}
-
-	l.LogHandler.Info(fmt.Sprintf("Persisting config to %s", l.Config.Proxy.Storage))
-	l.StorageHandler.Persist()
-
-	return nil
+	return l.StorageHandler.Persist()
 }

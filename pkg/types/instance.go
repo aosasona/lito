@@ -12,9 +12,13 @@ type Instance interface {
 	GetProxyConfig() *Proxy
 
 	// Get config as JSON string
-	String() (string, error)
+	MarshalConfig() (string, error)
+	// Unmarshal JSON string to config
+	UnmarshalConfig([]byte) (*Config, error)
 	// Save current config to disk
 	Commit() error
+	// Update config
+	UpdateConfig(*Config) error
 	// Reload config from disk
 	Reload() error
 

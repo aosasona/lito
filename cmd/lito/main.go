@@ -6,11 +6,15 @@ import (
 
 	"github.com/urfave/cli/v2"
 	"go.trulyao.dev/lito"
+	"go.trulyao.dev/lito/pkg/types"
 )
 
 const version = "1.0.0"
 
-var config = lito.Config{}
+var (
+	config              = types.Config{}
+	overwriteDiskConfig bool
+)
 
 func main() {
 	app := &cli.App{
@@ -43,5 +47,5 @@ func runLito() error {
 		}
 	}()
 
-	return l.Run()
+	return l.Run(lito.RunOpts{OverrideDiskConfig: overwriteDiskConfig})
 }

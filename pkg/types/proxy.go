@@ -20,13 +20,16 @@ type Proxy struct {
 	HTTPSPort int `json:"https_port,omitempty"`
 
 	// EnableTLS is a flag that determines whether or not the proxy will listen for TLS connections
-	EnableTLS bool `json:"enable_tls,omitempty"`
+	EnableTLS bool `json:"enable_tls"`
 
 	// TLSEmail is the email address that will be used to register TLS certificates
 	TLSEmail string `json:"tls_email"`
 
+	// EnableHTTPSRedirect is a flag that determines whether or not the proxy will automatically redirect HTTP requests to HTTPS
+	EnableHTTPSRedirect bool `json:"enable_https_redirect"`
+
 	// ConfigPath is the path to the file that the proxy will use to store its configuration - create if not exists or load
-	ConfigPath string `json:"data_dir"`
+	ConfigPath string `json:"config_path"`
 
 	// Storage is the type of store that the proxy will use
 	Storage Storage `json:"storage" ts:"type:'json' | 'sqlite'"`

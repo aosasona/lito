@@ -4,7 +4,6 @@ import (
 	"log"
 
 	"github.com/aosasona/gots/v2"
-	"go.trulyao.dev/lito"
 	"go.trulyao.dev/lito/pkg/types"
 )
 
@@ -25,7 +24,7 @@ func main() {
 		types.Retry{},
 		types.Domain{},
 		types.Proxy{},
-		lito.Config{},
+		types.Config{},
 	)
 
 	if err := g.Execute(); err != nil {

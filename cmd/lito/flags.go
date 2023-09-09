@@ -7,6 +7,13 @@ import (
 
 var flags = []cli.Flag{
 	&cli.BoolFlag{
+		Name:        "overwrite-config",
+		Aliases:     []string{"o"},
+		Usage:       "Overwrite the config file with the current config",
+		Value:       false,
+		Destination: &overwriteDiskConfig,
+	},
+	&cli.BoolFlag{
 		Name:        "enable-admin",
 		Aliases:     []string{"a"},
 		Usage:       "Enable the admin API",
@@ -69,13 +76,20 @@ var flags = []cli.Flag{
 	&cli.BoolFlag{
 		Name:        "enable-tls",
 		Usage:       "Enable TLS",
-		Value:       false,
+		Value:       true,
 		Destination: &config.Proxy.EnableTLS,
+	},
+	&cli.BoolFlag{
+		Name:        "enable-https-redirect",
+		Aliases:     []string{"r"},
+		Usage:       "Enable HTTP to HTTPS redirects",
+		Value:       true,
+		Destination: &config.Proxy.EnableHTTPSRedirect,
 	},
 	&cli.StringFlag{
 		Name:        "storage",
 		Usage:       "The storage backend to use",
-		Value:       "memory",
+		Value:       "json",
 		Destination: (*string)(&config.Proxy.Storage),
 	},
 }

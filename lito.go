@@ -2,7 +2,6 @@ package lito
 
 import (
 	"fmt"
-	"sync"
 
 	"go.trulyao.dev/lito/pkg/controllers"
 	"go.trulyao.dev/lito/pkg/logger"
@@ -11,20 +10,17 @@ import (
 	"go.trulyao.dev/lito/pkg/utils"
 )
 
-type Config struct {
-	Admin    types.Admin              `json:"admin"`
-	Services map[string]types.Service `json:"services"`
-	Proxy    types.Proxy              `json:"proxy"`
-	mutex    sync.RWMutex
-}
-
 type Lito struct {
-	Config         *Config
+	Config         *types.Config
 	LogHandler     logger.Logger
 	StorageHandler storage.Storage
 }
 
 type Opts = Lito // alias
+
+type RunOpts struct {
+	OverrideDiskConfig bool
+}
 
 func New(opts *Opts) (*Lito, error) {
 	if opts.Config == nil {
@@ -55,10 +51,21 @@ func (l *Lito) setup() {
 	}
 }
 
-func (l *Lito) Run() error {
+func (l *Lito) Run(opts RunOpts) error {
 	l.setup()
 
-	l.LogHandler.Info(fmt.Sprintf("Starting Lito on port :%d", l.Config.Proxy.HTTPPort), logger.Param{Key: "http", Value: l.Config.Proxy.HTTPPort}, logger.Param{Key: "https", Value: l.Config.Proxy.HTTPSPort})
+	if opts.OverrideDiskConfig {
+		l.LogHandler.Warn("Overriding disk config is enabled, this may cause unexpected behavior")
+		if err := l.Commit(); err != nil {
+			return err
+		}
+	}
+
+	l.LogHandler.Info(
+		fmt.Sprintf("Starting Lito on port :%d", l.Config.Proxy.HTTPPort),
+		logger.Param{Key: "http", Value: l.Config.Proxy.HTTPPort},
+		logger.Param{Key: "https", Value: l.Config.Proxy.HTTPSPort},
+	)
 
 	return nil
 }
