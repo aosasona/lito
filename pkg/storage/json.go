@@ -20,7 +20,7 @@ func NewJSONStorage() *JSON {
 func (j *JSON) Path() string { return j.path }
 
 func (j *JSON) Load() error {
-	if !j.Exists() {
+	if !j.Exists() || j.Empty() {
 		err := j.CreateFile()
 		if err != nil {
 			return err
@@ -46,6 +46,19 @@ func (j *JSON) Load() error {
 	}
 
 	return nil
+}
+
+func (j *JSON) Empty() bool {
+	f, err := os.ReadFile(j.path)
+	if err != nil {
+		return true
+	}
+
+	if len(f) == 0 {
+		return true
+	}
+
+	return false
 }
 
 func (j *JSON) Exists() bool {

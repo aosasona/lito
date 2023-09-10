@@ -6,6 +6,7 @@ import (
 
 type Instance interface {
 	// Getters
+	GetConfig() *Config
 	GetLogHandler() logger.Logger
 	GetAdminConfig() *Admin
 	GetServicesConfig() map[string]Service

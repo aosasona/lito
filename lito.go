@@ -1,8 +1,14 @@
 package lito
 
 import (
+	"context"
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
+	"go.trulyao.dev/lito/api"
 	"go.trulyao.dev/lito/pkg/controllers"
 	"go.trulyao.dev/lito/pkg/logger"
 	"go.trulyao.dev/lito/pkg/storage"
@@ -51,6 +57,48 @@ func (l *Lito) setup() {
 	}
 }
 
+func (l *Lito) handleInterrupt() {
+	sig := make(chan os.Signal, 1)
+	done := make(chan bool, 1)
+	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		<-sig
+		done <- true
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		// commit config before exiting
+		if err := l.Commit(); err != nil {
+			l.LogHandler.Fatal(fmt.Sprintf("Failed to commit config: %s", err.Error()))
+		}
+
+		// shutdown admin API
+		if err := api.Shutdown(ctx); err != nil {
+			l.LogHandler.Fatal(fmt.Sprintf("Failed to shutdown admin API: %s", err.Error()))
+		}
+
+		l.LogHandler.Info("Received interrupt, shutting down...")
+	}()
+
+	<-done
+}
+
+func (l *Lito) runAdminServer() {
+	l.LogHandler.Info(fmt.Sprintf("Starting admin API on port :%d", l.Config.Admin.Port))
+	if err := api.ServeAdminAPI(l.Config.Admin.Port); err != nil {
+		l.LogHandler.Fatal(fmt.Sprintf("Failed to start admin API: %s", err.Error()))
+	}
+}
+
+func (l *Lito) runProxy() {
+	l.LogHandler.Info(
+		fmt.Sprintf("Starting Lito on port :%d", l.Config.Proxy.HTTPPort),
+		logger.Param{Key: "http", Value: l.Config.Proxy.HTTPPort},
+		logger.Param{Key: "https", Value: l.Config.Proxy.HTTPSPort},
+	)
+}
+
 func (l *Lito) Run(opts RunOpts) error {
 	l.setup()
 
@@ -61,11 +109,13 @@ func (l *Lito) Run(opts RunOpts) error {
 		}
 	}
 
-	l.LogHandler.Info(
-		fmt.Sprintf("Starting Lito on port :%d", l.Config.Proxy.HTTPPort),
-		logger.Param{Key: "http", Value: l.Config.Proxy.HTTPPort},
-		logger.Param{Key: "https", Value: l.Config.Proxy.HTTPSPort},
-	)
+	if l.Config.Admin.Enabled {
+		go l.runAdminServer()
+	}
+
+	go l.runProxy()
+
+	l.handleInterrupt()
 
 	return nil
 }

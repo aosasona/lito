@@ -43,6 +43,8 @@ func (l *Lito) UpdateConfig(c *types.Config) error {
 	return nil
 }
 
+func (l *Lito) GetConfig() *types.Config { return l.Config }
+
 func (l *Lito) GetLogHandler() logger.Logger { return l.LogHandler }
 
 func (l *Lito) GetAdminConfig() *types.Admin { return &l.Config.Admin }

@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 
+	"go.trulyao.dev/lito/pkg/types"
 	"go.trulyao.dev/lito/pkg/utils"
 )
 
@@ -24,4 +25,13 @@ func fillAdminDefaults() {
 			c.logger().Info(fmt.Sprintf("Admin API listening on port %d", admin.Port))
 		}
 	}
+}
+
+func GetConfig() *types.Config {
+	return c.instance.GetConfig()
+}
+
+func ValidateAPIKey(key string) bool {
+	// return c.instance.ValidateAPIKey(key)
+	return false
 }
