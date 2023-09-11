@@ -32,6 +32,8 @@ func GetConfig() *types.Config {
 }
 
 func ValidateAPIKey(key string) bool {
-	// return c.instance.ValidateAPIKey(key)
-	return false
+	if key == "" || !c.admin().Enabled {
+		return false
+	}
+	return key == c.admin().APIKey
 }
