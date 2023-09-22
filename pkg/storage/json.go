@@ -100,8 +100,11 @@ func (j *JSON) Persist() error {
 		return err
 	}
 
-	err = os.WriteFile(j.path, []byte(config), 0644)
-	if err != nil {
+	if config == "" {
+		return utils.ErrEmptyConfig
+	}
+
+	if err := os.WriteFile(j.path, []byte(config), 0644); err != nil {
 		return err
 	}
 

@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"go.trulyao.dev/lito/pkg/controllers"
-	"go.trulyao.dev/lito/pkg/utils"
 )
 
 var server *http.Server
@@ -17,7 +15,7 @@ var server *http.Server
 func ServeAdminAPI(port int) error {
 	c := chi.NewRouter()
 
-	c.Get("/config", protect(getCurrentConfig))
+	c.Get("/config", protect(getConfig))
 
 	server = &http.Server{
 		ReadTimeout:  5 * time.Second,
@@ -32,8 +30,4 @@ func ServeAdminAPI(port int) error {
 
 func Shutdown(ctx context.Context) error {
 	return server.Shutdown(ctx)
-}
-
-func getCurrentConfig(w http.ResponseWriter, r *http.Request) {
-	utils.SendOK(w, controllers.GetConfig())
 }

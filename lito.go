@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
@@ -69,6 +70,7 @@ func (l *Lito) handleInterrupt() {
 		defer cancel()
 
 		// commit config before exiting
+		// TODO: find out why this commits a blank config
 		if err := l.Commit(); err != nil {
 			l.LogHandler.Fatal(fmt.Sprintf("Failed to commit config: %s", err.Error()))
 		}
@@ -109,13 +111,29 @@ func (l *Lito) Run(opts RunOpts) error {
 		}
 	}
 
+	var wg sync.WaitGroup
+
 	if l.Config.Admin.Enabled {
-		go l.runAdminServer()
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			l.runAdminServer()
+		}()
 	}
 
-	go l.runProxy()
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		l.runProxy()
+	}()
 
-	l.handleInterrupt()
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		l.handleInterrupt()
+	}()
+
+	wg.Wait()
 
 	return nil
 }
