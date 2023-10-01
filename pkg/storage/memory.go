@@ -1,9 +1,20 @@
 package storage
 
-type Memory struct{}
+import (
+	"go.trulyao.dev/lito/pkg/logger"
+	"go.trulyao.dev/lito/pkg/types"
+)
 
-func NewMemoryStorage() *Memory {
-	return &Memory{}
+type Memory struct {
+	config     *types.Config
+	logHandler logger.Logger
+}
+
+func NewMemoryStorage(opts *Opts) *Memory {
+	return &Memory{
+		config:     opts.Config,
+		logHandler: opts.LogHandler,
+	}
 }
 
 func (m *Memory) Path() string { return "" }
@@ -11,6 +22,6 @@ func (m *Memory) Path() string { return "" }
 func (m *Memory) Load() error { return nil }
 
 func (m *Memory) Persist() error {
-	s.instance.GetLogHandler().Warn("Storage is set to memory, skipping config persistence - this is NOT recommended for production use")
+	m.logHandler.Warn("Storage is set to memory, skipping config persistence - this is NOT recommended for production use")
 	return nil
 }

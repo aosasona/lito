@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/urfave/cli/v2"
-	"go.trulyao.dev/lito"
 	"go.trulyao.dev/lito/pkg/types"
 )
 
@@ -36,16 +35,5 @@ func main() {
 }
 
 func runLito() error {
-	l, err := lito.New(&lito.Opts{Config: &config})
-	if err != nil {
-		return err
-	}
-
-	defer func() {
-		if err := l.LogHandler.Sync(); err != nil {
-			log.Fatalf("Failed to sync log handler: %v", err)
-		}
-	}()
-
-	return l.Run(lito.RunOpts{OverrideDiskConfig: overwriteDiskConfig})
+	panic("not implemented")
 }
