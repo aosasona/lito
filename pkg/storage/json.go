@@ -29,11 +29,17 @@ func (j *JSON) Path() string {
 // Load reads the config from disk and loads it into memory, creating it if it doesn't exist yet
 func (j *JSON) Load() error {
 	if !j.exists() || j.isEmpty() {
-		err := j.init()
-		if err != nil {
+		if err := j.init(); err != nil {
 			return err
 		}
 	}
+
+	config, err := j.read()
+	if err != nil {
+		return fmt.Errorf("failed to read config from disk: %w", err)
+	}
+
+	j.config.Update(config)
 
 	return nil
 }
@@ -88,8 +94,8 @@ func (j *JSON) init() error {
 	return nil
 }
 
-// delete() deletes the config file on disk
-func (j *JSON) delete() error {
+// remove() deletes the config file on disk
+func (j *JSON) remove() error {
 	return os.Remove(j.config.Proxy.ConfigPath)
 }
 

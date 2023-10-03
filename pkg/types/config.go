@@ -9,15 +9,32 @@ type Config struct {
 	Admin    *Admin              `json:"admin"`
 	Services map[string]*Service `json:"services"`
 	Proxy    *Proxy              `json:"proxy"`
-	sync.RWMutex
+	rmu      sync.RWMutex
 }
 
-func (c *Config) Lock() {
+func (c *Config) Lock() { c.rmu.Lock() }
+
+func (c *Config) Unlock() { c.rmu.Unlock() }
+
+func (c *Config) RLock() { c.rmu.RLock() }
+
+func (c *Config) RUnlock() { c.rmu.RUnlock() }
+
+func (c *Config) WithLock(f func()) {
 	c.Lock()
+	defer c.Unlock()
+
+	f()
 }
 
-func (c *Config) Unlock() {
-	c.Unlock()
+// Update updates the config with the new config without overwriting the mutex - only use this if you know what you're doing
+func (c *Config) Update(config *Config) {
+	c.RLock()
+	defer c.RUnlock()
+
+	c.Admin = config.Admin
+	c.Services = config.Services
+	c.Proxy = config.Proxy
 }
 
 // String converts the config to a JSON string - should only be used for debugging, handle errors properly when persisting

@@ -10,7 +10,7 @@ import (
 var (
 	mockConfigPath = ".mock.config.json"
 
-	mockConfigStr = `{
+	mockConfigBytes = []byte(`{
   "admin": {
     "enabled": true,
     "port": 9090,
@@ -57,7 +57,7 @@ var (
       "example.com"
     ]
   }
-}`
+}`)
 
 	jsonOpts = &Opts{
 		Config: &types.Config{
@@ -112,7 +112,6 @@ func Test_InitOnDisk(t *testing.T) {
 		t.Errorf("failed to init on disk: %v", err)
 	}
 
-	// make sure the content is correct
 	diskContent, err := j.read()
 	if err != nil {
 		t.Errorf("failed to read from disk: %v", err)
@@ -123,7 +122,44 @@ func Test_InitOnDisk(t *testing.T) {
 		t.Errorf("failed to convert disk content to string: %v", err)
 	}
 
-	if !reflect.DeepEqual(dcStr, []byte(mockConfigStr)) {
-		t.Errorf("expected disk content to be %v, got %v", mockConfigStr, string(dcStr))
+	if !reflect.DeepEqual(dcStr, mockConfigBytes) {
+		t.Errorf("expected disk content to be %v, got %v", string(mockConfigBytes), string(dcStr))
+	}
+
+	// clean up
+	err = j.remove()
+	if err != nil {
+		t.Errorf("failed to clean up: %v", err)
+	}
+}
+
+func Test_Load(t *testing.T) {
+	// init mock config on disk so we can load it again and compare
+	tempJ := NewJSONStorage(jsonOpts)
+	err := tempJ.init()
+	if err != nil {
+		t.Errorf("failed to init on disk: %v", err)
+	}
+
+	j := NewJSONStorage(&Opts{Config: &types.Config{Proxy: &types.Proxy{ConfigPath: mockConfigPath}}})
+
+	err = j.Load()
+	if err != nil {
+		t.Errorf("failed to load from disk: %v", err)
+	}
+
+	memContentBytes, err := j.config.ToJson()
+	if err != nil {
+		t.Errorf("failed to convert config to JSON bytes: %v", err)
+	}
+
+	if !reflect.DeepEqual(memContentBytes, mockConfigBytes) {
+		t.Errorf("expected config to be %v, got %v", string(mockConfigBytes), string(memContentBytes))
+	}
+
+	// clean up
+	err = j.remove()
+	if err != nil {
+		t.Errorf("failed to clean up: %v", err)
 	}
 }
