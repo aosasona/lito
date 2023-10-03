@@ -42,8 +42,8 @@ type DomainStatus struct {
 }
 
 type Domain struct {
-	// Name is the domain name
-	Name string `json:"name"`
+	// Name is the domain name e.g example.com, sub.example.com
+	DomainName string `json:"domain_name"`
 
 	// Status is the certificate and DNS status for the domain
 	Status DomainStatus `json:"status"`

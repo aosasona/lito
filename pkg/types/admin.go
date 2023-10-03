@@ -9,7 +9,4 @@ type Admin struct {
 
 	// APIKey is the key that the admin API will use for authentication
 	APIKey string `json:"api_key" ts:"type:string"`
-
-	// ConfirmDisable is a flag to require confirmation when disabling the admin API so that it cannot be disabled by accident (Go sets bools to false by default)
-	ConfirmDisable bool `json:"confirm_disable,omitempty" ts:"type:boolean"`
 }

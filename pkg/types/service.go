@@ -8,7 +8,7 @@ type Service struct {
 	TargetPort int `json:"port,omitempty"`
 
 	// EnableTLS is a flag to enable TLS for the service
-	EnableTLS *bool `json:"enable_tls"`
+	EnableTLS bool `json:"enable_tls"`
 
 	// Domains is a list of domains that the service will respond to
 	Domains []Domain `json:"domains"`

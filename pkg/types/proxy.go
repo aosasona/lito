@@ -5,7 +5,8 @@ type Storage string
 const (
 	StorageMemory Storage = "memory"
 	StorageJSON   Storage = "json"
-	// Not yet implemented
+
+	// IMPORTANT: not yet implemented, do not use!
 	StorageSQLite3 Storage = "sqlite"
 )
 
@@ -32,7 +33,7 @@ type Proxy struct {
 	ConfigPath string `json:"config_path"`
 
 	// Storage is the type of store that the proxy will use
-	Storage Storage `json:"storage" ts:"type:'json' | 'sqlite'"`
+	Storage Storage `json:"storage" ts:"type:'json' | 'sqlite' | 'memory'"`
 
 	// CNames is a list of CNAMEs associated with the proxy/host running Lito
 	CNames []string `json:"cnames"`
