@@ -20,7 +20,17 @@ func (c *Config) Unlock() {
 	c.Unlock()
 }
 
+// String converts the config to a JSON string - should only be used for debugging, handle errors properly when persisting
+func (c *Config) String() string {
+	b, err := c.ToJson()
+	if err != nil {
+		return ""
+	}
+
+	return string(b)
+}
+
 // ToJson converts the config to a JSON byte array
 func (c *Config) ToJson() ([]byte, error) {
-	return json.Marshal(c)
+	return json.MarshalIndent(c, "", "  ")
 }
