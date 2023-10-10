@@ -34,6 +34,9 @@ func (j *JSON) Load() error {
 		}
 	}
 
+	j.config.Lock()
+	defer j.config.Unlock()
+
 	config, err := j.read()
 	if err != nil {
 		return fmt.Errorf("failed to read config from disk: %w", err)
@@ -46,7 +49,24 @@ func (j *JSON) Load() error {
 
 // Persist writes the current config to disk
 func (j *JSON) Persist() error {
-	panic("not implemented")
+	j.config.RLock()
+	defer j.config.RUnlock()
+
+	configBytes, err := j.config.ToJson()
+	if err != nil {
+		return fmt.Errorf("failed to convert config to JSON: %s", err.Error())
+	}
+
+	var file *os.File
+	if file, err = os.OpenFile(j.config.Proxy.ConfigPath, os.O_WRONLY|os.O_TRUNC, 0644); err != nil {
+		return fmt.Errorf("failed to open config file: %s", err.Error())
+	}
+
+	if _, err = file.Write(configBytes); err != nil {
+		return fmt.Errorf("failed to write config to disk: %s", err.Error())
+	}
+
+	return nil
 }
 
 func (j *JSON) read() (*types.Config, error) {
@@ -68,6 +88,9 @@ func (j *JSON) read() (*types.Config, error) {
 //
 // This function should only be used when the config file doesn't exist yet or is empty (e.g. on first run)
 func (j *JSON) init() error {
+	j.config.Lock()
+	defer j.config.Unlock()
+
 	err := os.MkdirAll(filepath.Dir(j.config.Proxy.ConfigPath), 0755)
 	if err != nil {
 		return err

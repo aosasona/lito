@@ -142,6 +142,13 @@ func Test_Load(t *testing.T) {
 	}
 
 	j := NewJSONStorage(&Opts{Config: &types.Config{Proxy: &types.Proxy{ConfigPath: mockConfigPath}}})
+	defer func() {
+		// clean up
+		err = j.remove()
+		if err != nil {
+			t.Errorf("failed to clean up: %v", err)
+		}
+	}()
 
 	err = j.Load()
 	if err != nil {
@@ -156,10 +163,109 @@ func Test_Load(t *testing.T) {
 	if !reflect.DeepEqual(memContentBytes, mockConfigBytes) {
 		t.Errorf("expected config to be %v, got %v", string(mockConfigBytes), string(memContentBytes))
 	}
+}
 
-	// clean up
-	err = j.remove()
+func Test_Persist(t *testing.T) {
+	// init mock config on disk so we can load it again and compare
+	tempJ := NewJSONStorage(jsonOpts)
+	err := tempJ.init()
 	if err != nil {
-		t.Errorf("failed to clean up: %v", err)
+		t.Errorf("failed to init on disk: %v", err)
+	}
+
+	// simulate updating data
+	opts := jsonOpts
+	opts.Config.Admin.Port = 21000
+	opts.Config.Proxy.EnableTLS = false
+	opts.Config.Proxy.TLSEmail = "john@doe.com"
+	opts.Config.Services["demo"].TargetPort = 5000
+
+	j := NewJSONStorage(opts)
+	defer func() {
+		// clean up
+		err = j.remove()
+		if err != nil {
+			t.Errorf("failed to clean up: %v", err)
+		}
+	}()
+
+	err = j.Persist()
+	if err != nil {
+		t.Errorf("failed to persist: %v", err)
+	}
+
+	// read from disk and compare
+	diskContent, err := j.read()
+	if err != nil {
+		t.Errorf("failed to read from disk: %v", err)
+	}
+
+	dcStr, err := diskContent.ToJson()
+	if err != nil {
+		t.Errorf("failed to convert disk content to string: %v", err)
+	}
+
+	optsBytes, err := opts.Config.ToJson()
+	if err != nil {
+		t.Errorf("failed to convert opts to JSON bytes: %v", err)
+	}
+
+	if !reflect.DeepEqual(dcStr, optsBytes) {
+		t.Errorf("expected disk content to be %v, got %v", string(optsBytes), string(dcStr))
+	}
+}
+
+func Test_Full(t *testing.T) {
+	opts := jsonOpts
+
+	j := NewJSONStorage(opts)
+	defer func() {
+		// clean up
+		err := j.remove()
+		if err != nil {
+			t.Errorf("failed to clean up: %v", err)
+		}
+	}()
+
+	// Load should and will always be called on startup
+	err := j.Load()
+	if err != nil {
+		t.Errorf("failed to load from disk: %v", err)
+	}
+
+	// Concurrently update and persist data a couple of times to simulate a real world scenario (e.g. updating config via API)
+	// Previous versions had a bug where the config file would completely be blank on persist; main reason for this test and rewrite
+	for i := 0; i < 10; i++ {
+		go func() {
+			opts.Config.Admin.Port = opts.Config.Admin.Port + 100
+			opts.Config.Proxy.EnableTLS = !opts.Config.Proxy.EnableTLS
+			opts.Config.Proxy.HTTPPort = opts.Config.Proxy.HTTPPort + 1000
+			err := j.Persist()
+			if err != nil {
+				t.Errorf("failed to persist: %v", err)
+				return
+			}
+		}()
+	}
+
+	// Load again to make sure the data is still there
+	err = j.Load()
+	if err != nil {
+		t.Errorf("failed to load from disk: %v", err)
+	}
+
+	// Compare
+	memContentBytes, err := j.config.ToJson()
+	if err != nil {
+		t.Errorf("failed to convert config to JSON bytes: %v", err)
+	}
+
+	optsBytes, err := opts.Config.ToJson()
+	if err != nil {
+		t.Errorf("failed to convert opts to JSON bytes: %v", err)
+	}
+
+	if !reflect.DeepEqual(memContentBytes, optsBytes) {
+		t.Errorf("expected config to be %v, got %v", string(optsBytes), string(memContentBytes))
 	}
 }

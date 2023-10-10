@@ -29,9 +29,6 @@ func (c *Config) WithLock(f func()) {
 
 // Update updates the config with the new config without overwriting the mutex - only use this if you know what you're doing
 func (c *Config) Update(config *Config) {
-	c.RLock()
-	defer c.RUnlock()
-
 	c.Admin = config.Admin
 	c.Services = config.Services
 	c.Proxy = config.Proxy
