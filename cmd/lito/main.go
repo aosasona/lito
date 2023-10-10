@@ -25,7 +25,7 @@ func main() {
 		Usage:                  "A flexible and lightweight reverse proxy - with automatic TLS (powered by Caddy's CertMagic)",
 		Flags:                  flags,
 		Action: func(c *cli.Context) error {
-			return runLito()
+			return run()
 		},
 	}
 
@@ -34,6 +34,6 @@ func main() {
 	}
 }
 
-func runLito() error {
+func run() error {
 	panic("not implemented")
 }

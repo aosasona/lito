@@ -44,6 +44,10 @@ func (j *JSON) Load() error {
 
 	j.config.Update(config)
 
+	if j.logHandler != nil {
+		j.logHandler.Info("successfully loaded config from disk")
+	}
+
 	return nil
 }
 
@@ -64,6 +68,10 @@ func (j *JSON) Persist() error {
 
 	if _, err = file.Write(configBytes); err != nil {
 		return fmt.Errorf("failed to write config to disk: %s", err.Error())
+	}
+
+	if j.logHandler != nil {
+		j.logHandler.Info("successfully persisted config to disk")
 	}
 
 	return nil

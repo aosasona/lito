@@ -17,7 +17,7 @@ func NewMemoryStorage(opts *Opts) *Memory {
 	}
 }
 
-func (m *Memory) Path() string { return "" }
+func (m *Memory) Path() string { return ":memory:" }
 
 func (m *Memory) Load() error { return nil }
 
