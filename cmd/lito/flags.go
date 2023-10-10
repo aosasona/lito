@@ -7,13 +7,6 @@ import (
 
 var flags = []cli.Flag{
 	&cli.BoolFlag{
-		Name:        "overwrite-config",
-		Aliases:     []string{"o"},
-		Usage:       "Overwrite the config file with the current config",
-		Value:       false,
-		Destination: &overwriteDiskConfig,
-	},
-	&cli.BoolFlag{
 		Name:        "enable-admin",
 		Aliases:     []string{"a"},
 		Usage:       "Enable the admin API",

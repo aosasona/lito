@@ -5,15 +5,14 @@ import (
 	"os"
 
 	"github.com/urfave/cli/v2"
+	"go.trulyao.dev/lito/core"
+	"go.trulyao.dev/lito/pkg/logger"
 	"go.trulyao.dev/lito/pkg/types"
 )
 
 const version = "1.0.0"
 
-var (
-	config              = types.Config{}
-	overwriteDiskConfig bool
-)
+var config = types.Config{}
 
 func main() {
 	app := &cli.App{
@@ -35,5 +34,10 @@ func main() {
 }
 
 func run() error {
-	panic("not implemented")
+	c := core.New(&core.Opts{
+		Config:     &config,
+		LogHandler: &logger.DefaultLogHandler,
+	})
+
+	return c.Run()
 }
