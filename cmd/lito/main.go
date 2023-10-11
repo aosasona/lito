@@ -36,7 +36,7 @@ func main() {
 func run() error {
 	c := core.New(&core.Opts{
 		Config:     &config,
-		LogHandler: &logger.DefaultLogHandler,
+		LogHandler: logger.DefaultLogHandler,
 	})
 
 	return c.Run()

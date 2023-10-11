@@ -6,21 +6,21 @@ func (c *Core) RunProxy() error {
 	return nil
 }
 
-func (c *Core) lookupServiceByName(name string) *types.Service {
+func (c *Core) findServiceByName(name string) (*types.Service, bool) {
 	service, ok := c.config.Services[name]
 	if !ok {
-		return nil
+		return nil, false
 	}
-	return service
+	return service, true
 }
 
-func (c *Core) lookupServiceByHost(host string) *types.Service {
-	for _, service := range c.config.Services {
+func (c *Core) findServiceByProxiedDomain(domainName string) (string, *types.Service, bool) {
+	for name, service := range c.config.Services {
 		for _, serviceHost := range service.Domains {
-			if serviceHost.DomainName == host {
-				return service
+			if serviceHost.DomainName == domainName {
+				return name, service, true
 			}
 		}
 	}
-	return nil
+	return "", nil, false
 }

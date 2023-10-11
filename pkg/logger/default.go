@@ -13,7 +13,7 @@ type DefaultLogger struct {
 	maxBufferSize   int
 }
 
-var DefaultLogHandler = DefaultLogger{
+var DefaultLogHandler = &DefaultLogger{
 	DefaultLogLevel: LogLevelInfo,
 	Path:            "lito.log",
 }

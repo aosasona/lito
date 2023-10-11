@@ -25,17 +25,9 @@ var (
         {
           "name": "sub.demo.com",
           "status": {
-            "cert": {
-              "value": "pending",
-              "last_updated": 1696336327
-            },
             "dns": {
               "value": "verified",
-              "retry": {
-                "max_tries": 0,
-                "interval": 0,
-                "current_tries": 0
-              },
+              "current_retry_count": 0,
               "last_updated": 1696336327
             }
           }
@@ -86,10 +78,6 @@ var (
 						{
 							DomainName: "sub.demo.com",
 							Status: types.DomainStatus{
-								Cert: types.DomainStatusCert{
-									Value:       types.CertStatusPending,
-									LastUpdated: 1696336327,
-								},
 								DNS: types.DomainStatusDNS{
 									Value:       types.DNSStatusVerified,
 									LastUpdated: 1696336327,

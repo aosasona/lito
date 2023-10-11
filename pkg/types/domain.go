@@ -1,42 +1,23 @@
 package types
 
-// Will be handled by certmagic
-type Retry struct {
-	MaxTries     int `json:"max_tries"`
-	Interval     int `json:"interval"`
-	CurrentTries int `json:"current_tries"`
-}
-
 type (
-	CertStatus string
-	DNSStatus  string
+	DNSStatus string
 )
 
 const (
-	CertStatusIssued  CertStatus = "issued"
-	CertStatusPending CertStatus = "pending"
-	CertStatusFailed  CertStatus = "failed"
-
 	DNSStatusVerified DNSStatus = "verified"
 	DNSStatusPending  DNSStatus = "pending"
 	DNSStatusAborted  DNSStatus = "aborted"
+	DNSStatusFailed   DNSStatus = "failed"
 )
 
-type DomainStatusCert struct {
-	Value       CertStatus `json:"value" ts:"type:'issued' | 'pending' | 'failed'"`
-	LastUpdated int        `json:"last_updated"`
-}
-
 type DomainStatusDNS struct {
-	Value       DNSStatus `json:"value" ts:"type:'verified' | 'pending' | 'aborted'"`
-	Retry       Retry     `json:"retry"`
-	LastUpdated int       `json:"last_updated"`
+	Value             DNSStatus `json:"value" ts:"type:'verified' | 'pending' | 'aborted' | 'failed'"`
+	CurrentRetryCount int       `json:"current_retry_count"`
+	LastUpdated       int       `json:"last_updated"`
 }
 
 type DomainStatus struct {
-	// Cert is the certificate status for the domain
-	Cert DomainStatusCert `json:"cert" ts:"'issued' | 'pending' | 'failed'"`
-
 	// DNS is the DNS status for the domain
 	DNS DomainStatusDNS `json:"dns" ts:"'verified' | 'pending' | 'aborted'"`
 }

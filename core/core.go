@@ -29,9 +29,15 @@ func New(opts *Opts) *Core {
 		errorHandler = opts.ErrorHandler
 	}
 
+	var logHandler logger.Logger
+	logHandler = logger.DefaultLogHandler
+	if opts.LogHandler != nil {
+		logHandler = opts.LogHandler
+	}
+
 	return &Core{
 		config:       opts.Config,
-		logHandler:   opts.LogHandler,
+		logHandler:   logHandler,
 		errorHandler: errorHandler,
 	}
 }
