@@ -263,3 +263,38 @@ func Test_OptionSliceNone(t *testing.T) {
 		t.Errorf("Expected %s, got %s", `{"d":null}`, string(bytes))
 	}
 }
+
+func Test_OptionMap(t *testing.T) {
+	m := Some(map[string]string{"foo": "bar"})
+
+	if m.IsNone() {
+		t.Errorf("OptionMap should not be None")
+	}
+
+	if m.Value()["foo"] != "bar" {
+		t.Errorf("OptionMap[foo] should be bar")
+	}
+}
+
+func Test_OptionMapNone(t *testing.T) {
+	m := None[map[string]string]()
+
+	if !m.IsNone() {
+		t.Errorf("OptionMap should be None")
+	}
+
+	data := struct {
+		Data Option[map[string]string] `json:"d"`
+	}{
+		Data: m,
+	}
+
+	bytes, err := json.Marshal(data)
+	if err != nil {
+		t.Errorf("OptionMap should marshal")
+	}
+
+	if string(bytes) != `{"d":null}` {
+		t.Errorf("Expected %s, got %s", `{"d":null}`, string(bytes))
+	}
+}
