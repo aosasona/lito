@@ -298,3 +298,33 @@ func Test_OptionMapNone(t *testing.T) {
 		t.Errorf("Expected %s, got %s", `{"d":null}`, string(bytes))
 	}
 }
+
+// A pointer to a struct is a special case, because it's a pointer to a struct, not a struct itself, it should remain consistent with the original struct
+func Test_OptionPointer(t *testing.T) {
+	type MyStruct struct {
+		Foo string `json:"foo"`
+		Bar string `json:"bar"`
+	}
+
+	d := MyStruct{Foo: "foo", Bar: "bar"}
+	s := Some(&d)
+
+	if s.IsNone() {
+		t.Errorf("OptionPointer should not be None")
+	}
+
+	s.Unwrap().Foo = "foobaz"
+
+	if d.Foo != "foobaz" {
+		t.Errorf("OptionPointer should be foobaz, got %s", d.Foo)
+	}
+
+	jsonBytes, err := json.Marshal(s)
+	if err != nil {
+		t.Errorf("OptionPointer should marshal")
+	}
+
+	if string(jsonBytes) != `{"foo":"foobaz","bar":"bar"}` {
+		t.Errorf("Expected %s, got %s", `{"foo":"foobaz","bar":"bar"}`, string(jsonBytes))
+	}
+}
