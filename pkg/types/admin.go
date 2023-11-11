@@ -21,5 +21,5 @@ type Admin struct {
 	Port option.Int `json:"port" ts:"type:number"`
 
 	// APIKey is the key that the admin API will use for authentication
-	APIKey option.Int `json:"api_key" ts:"type:string"`
+	APIKey option.String `json:"api_key" ts:"type:string"`
 }

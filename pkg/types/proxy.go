@@ -1,5 +1,7 @@
 package types
 
+import "go.trulyao.dev/lito/ext/option"
+
 type Storage string
 
 const (
@@ -12,29 +14,29 @@ const (
 
 type Proxy struct {
 	// Host is the host that the proxy will listen on
-	Host string `json:"host"`
+	Host option.String `json:"host"`
 
 	// HTTPPort is the port that the proxy will listen on for HTTP connections
-	HTTPPort int `json:"http_port"`
+	HTTPPort option.Int `json:"http_port"`
 
 	// HTTPSPort is the port that the proxy will listen on for TLS connections
-	HTTPSPort int `json:"https_port,omitempty"`
+	HTTPSPort option.Int `json:"https_port,omitempty"`
 
 	// EnableTLS is a flag that determines whether or not the proxy will listen for TLS connections
-	EnableTLS bool `json:"enable_tls"`
+	EnableTLS option.Bool `json:"enable_tls"`
 
 	// TLSEmail is the email address that will be used to register TLS certificates
-	TLSEmail string `json:"tls_email"`
+	TLSEmail option.String `json:"tls_email"`
 
 	// EnableHTTPSRedirect is a flag that determines whether or not the proxy will automatically redirect HTTP requests to HTTPS
-	EnableHTTPSRedirect bool `json:"enable_https_redirect"`
+	EnableHTTPSRedirect option.Bool `json:"enable_https_redirect"`
 
 	// ConfigPath is the path to the file that the proxy will use to store its configuration - create if not exists or load
-	ConfigPath string `json:"config_path"`
+	ConfigPath option.String `json:"config_path"`
 
 	// Storage is the type of store that the proxy will use
-	Storage Storage `json:"storage" ts:"type:'json' | 'sqlite' | 'memory'"`
+	Storage option.Option[Storage] `json:"storage" ts:"type:'json' | 'sqlite' | 'memory'"`
 
 	// CNames is a list of CNAMEs associated with the proxy/host running Lito
-	CNames []string `json:"cnames"`
+	CNames option.Option[[]string] `json:"cnames"`
 }

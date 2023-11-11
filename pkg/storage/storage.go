@@ -25,12 +25,12 @@ func New(opts *Opts) (Storage, error) {
 	defer utils.Assert(opts.Config != nil, "opts.Config is nil in storage package - this is definitely a bug")
 	defer utils.Assert(opts.LogHandler != nil, "opt.LogHandler is nil in storage package - this is definitely a bug")
 
-	switch opts.Config.Proxy.Storage {
+	switch opts.Config.Proxy.Unwrap().Storage.Unwrap() {
 	case types.StorageJSON:
 		return NewJSONStorage(opts), nil
 	case types.StorageMemory:
 		return NewMemoryStorage(opts), nil
 	default:
-		return nil, fmt.Errorf("Unknown storage type: %s", opts.Config.Proxy.Storage)
+		return nil, fmt.Errorf("Unknown storage type: %v", opts.Config.Proxy.Unwrap().Storage)
 	}
 }

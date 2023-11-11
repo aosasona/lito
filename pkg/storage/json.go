@@ -16,14 +16,21 @@ type JSON struct {
 }
 
 func NewJSONStorage(opts *Opts) *JSON {
+	if opts == nil {
+		panic("opts cannot be nil")
+	}
+
 	return &JSON{
 		config:     opts.Config,
 		logHandler: opts.LogHandler,
 	}
 }
 
+// We can unwrap here because it is guaranteed that the config is not nil
 func (j *JSON) Path() string {
-	return j.config.Proxy.ConfigPath
+	return j.config.
+		Proxy.Unwrap().
+		ConfigPath.Unwrap()
 }
 
 // Load reads the config from disk and loads it into memory, creating it if it doesn't exist yet
@@ -62,7 +69,8 @@ func (j *JSON) Persist() error {
 	}
 
 	var file *os.File
-	if file, err = os.OpenFile(j.config.Proxy.ConfigPath, os.O_WRONLY|os.O_TRUNC, 0644); err != nil {
+
+	if file, err = os.OpenFile(j.Path(), os.O_WRONLY|os.O_TRUNC, 0644); err != nil {
 		return fmt.Errorf("failed to open config file: %s", err.Error())
 	}
 
@@ -78,7 +86,7 @@ func (j *JSON) Persist() error {
 }
 
 func (j *JSON) read() (*types.Config, error) {
-	configBytes, err := os.ReadFile(j.config.Proxy.ConfigPath)
+	configBytes, err := os.ReadFile(j.Path())
 	if err != nil {
 		return nil, err
 	}
@@ -99,13 +107,13 @@ func (j *JSON) init() error {
 	j.config.Lock()
 	defer j.config.Unlock()
 
-	err := os.MkdirAll(filepath.Dir(j.config.Proxy.ConfigPath), 0755)
+	err := os.MkdirAll(filepath.Dir(j.Path()), 0755)
 	if err != nil {
 		return err
 	}
 
-	if _, err := os.Stat(j.config.Proxy.ConfigPath); os.IsNotExist(err) {
-		file, err := os.Create(j.config.Proxy.ConfigPath)
+	if _, err := os.Stat(j.Path()); os.IsNotExist(err) {
+		file, err := os.Create(j.Path())
 		if err != nil {
 			return err
 		}
@@ -127,16 +135,16 @@ func (j *JSON) init() error {
 
 // remove() deletes the config file on disk
 func (j *JSON) remove() error {
-	return os.Remove(j.config.Proxy.ConfigPath)
+	return os.Remove(j.Path())
 }
 
 func (j *JSON) exists() bool {
-	_, err := os.Stat(j.config.Proxy.ConfigPath)
+	_, err := os.Stat(j.Path())
 	return !os.IsNotExist(err)
 }
 
 func (j *JSON) isEmpty() bool {
-	fileInfo, err := os.Stat(j.config.Proxy.ConfigPath)
+	fileInfo, err := os.Stat(j.Path())
 	if err != nil {
 		j.logHandler.Debug("failed to open config file, this might be a bug, check the error details to confirm", logger.Param{Key: "error", Value: err.Error()})
 		return true

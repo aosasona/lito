@@ -1,6 +1,9 @@
 package option
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type Option[T any] struct {
 	value *T
@@ -62,6 +65,13 @@ func (o Option[T]) UnwrapOrElse(f func() T) T {
 	return o.Value()
 }
 
+func (o Option[T]) UnwrapPtr() *T {
+	if o.IsNone() {
+		return nil
+	}
+	return o.value
+}
+
 // Map returns a new option with the result of the given function applied to the value of the option.
 func (o Option[T]) MarshalJSON() ([]byte, error) {
 	if o.IsNone() {
@@ -84,4 +94,8 @@ func (o *Option[T]) UnmarshalJSON(data []byte) error {
 	*o = Some[T](value)
 
 	return nil
+}
+
+func (o *Option[T]) String() string {
+	return fmt.Sprintf("Option[%v]", o.Value())
 }

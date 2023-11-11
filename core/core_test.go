@@ -1,6 +1,15 @@
 package core
 
-import "go.trulyao.dev/lito/pkg/types"
+import (
+	"go.trulyao.dev/lito/ext/option"
+	"go.trulyao.dev/lito/pkg/types"
+)
+
+var (
+	String = option.StringValue
+	Int    = option.IntValue
+	Bool   = option.BoolValue
+)
 
 func mockConfig(configPath ...string) types.Config {
 	mockConfigPath := "lito.json"
@@ -9,27 +18,27 @@ func mockConfig(configPath ...string) types.Config {
 	}
 
 	return types.Config{
-		Admin: &types.Admin{
-			Enabled: true,
-			Port:    9090,
-			APIKey:  "1234567890abcdefghij",
-		},
-		Proxy: &types.Proxy{
-			Host:                "0.0.0.0",
-			HTTPPort:            80,
-			HTTPSPort:           443,
-			EnableTLS:           true,
-			TLSEmail:            "someone@example.com",
-			EnableHTTPSRedirect: true,
-			ConfigPath:          mockConfigPath,
-			Storage:             types.StorageJSON,
-			CNames:              []string{"example.com"},
-		},
+		Admin: option.Some(&types.Admin{
+			Enabled: Bool(true),
+			Port:    Int(9090),
+			APIKey:  String("1234567890abcdefghij"),
+		}),
+		Proxy: option.Some(&types.Proxy{
+			Host:                String("0.0.0.0"),
+			HTTPPort:            Int(80),
+			HTTPSPort:           Int(443),
+			EnableTLS:           Bool(true),
+			TLSEmail:            String("someone@example.com"),
+			EnableHTTPSRedirect: Bool(true),
+			ConfigPath:          String(mockConfigPath),
+			Storage:             option.Some(types.StorageJSON),
+			CNames:              option.Some([]string{"example.com"}),
+		}),
 		Services: map[string]*types.Service{
 			"demo": {
-				TargetHost: "something.dp.com",
-				TargetPort: 80,
-				EnableTLS:  false,
+				TargetHost: String("something.dp.com"),
+				TargetPort: Int(80),
+				EnableTLS:  Bool(false),
 				Domains: []types.Domain{
 					{
 						DomainName: "demo.com",
@@ -41,9 +50,9 @@ func mockConfig(configPath ...string) types.Config {
 			},
 
 			"demo2": {
-				TargetHost: "anotherdemo.com",
-				TargetPort: 80,
-				EnableTLS:  false,
+				TargetHost: String("anotherdemo.com"),
+				TargetPort: Int(80),
+				EnableTLS:  Bool(false),
 				Domains: []types.Domain{
 					{
 						DomainName: "addftp.com",

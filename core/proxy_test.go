@@ -1,6 +1,8 @@
 package core
 
-import "testing"
+import (
+	"testing"
+)
 
 func Test_FindServiceByName(t *testing.T) {
 	tests := []struct {
@@ -22,12 +24,12 @@ func Test_FindServiceByName(t *testing.T) {
 			t.Errorf("lookupServiceByName(%s) = %v, want %v", test.ServiceName, got, test.Want)
 		}
 
-		if service != nil && service.TargetHost != test.ExpectedTargetHost {
+		if service != nil && service.TargetHost.Unwrap() != test.ExpectedTargetHost {
 			t.Errorf("lookupServiceByName(%s) = %v, want %v", test.ServiceName, service.TargetHost, test.ExpectedTargetHost)
 		}
 
 		if service == nil && test.ExpectedTargetHost != "" {
-			if service.TargetHost != test.ExpectedTargetHost {
+			if service.TargetHost.Unwrap() != test.ExpectedTargetHost {
 				t.Errorf("lookupServiceByName(%s) = %v, want %v", test.ServiceName, service.TargetHost, test.ExpectedTargetHost)
 			}
 		}
@@ -60,7 +62,7 @@ func Test_FindServiceByProxiedDomain(t *testing.T) {
 			t.Errorf("lookupServiceByDomainName(%s) = %v, want %v", test.DomainName, name, test.ExpectedServiceName)
 		}
 
-		if service != nil && service.TargetHost != test.ExpectedTargetHost {
+		if service != nil && service.TargetHost.Unwrap() != test.ExpectedTargetHost {
 			t.Errorf("lookupServiceByDomainName(%s) = %v, want %v", test.DomainName, service.TargetHost, test.ExpectedTargetHost)
 		}
 	}
