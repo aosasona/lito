@@ -1,6 +1,8 @@
 package core
 
 import (
+	"errors"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -28,6 +30,10 @@ type Opts struct {
 }
 
 func New(opts *Opts) *Core {
+	if opts == nil {
+		panic("opts cannot be nil")
+	}
+
 	errorHandler := handlers.ErrorHandler
 	if opts.ErrorHandler != nil {
 		errorHandler = opts.ErrorHandler
@@ -51,6 +57,7 @@ func New(opts *Opts) *Core {
 	}
 
 	return &Core{
+		debug:          opts.Debug,
 		config:         opts.Config,
 		storageHandler: storageHandler,
 		logHandler:     logHandler,
@@ -89,10 +96,27 @@ func (c *Core) Run() error {
 	}
 
 	eg := errgroup.Group{}
+
 	eg.Go(func() error {
 		c.logHandler.Info("starting proxy")
-		return c.startProxy()
+		if err := c.startProxy(); err != nil {
+			if errors.Is(http.ErrServerClosed, err) {
+				return nil
+			}
+
+			return err
+		}
+
+		return nil
 	})
+
+	adminApiEnabled := c.config.Admin.IsSome() && c.config.Admin.Unwrap().Enabled.IsSome() && c.config.Admin.Unwrap().Enabled.Unwrap() == true
+	if !adminApiEnabled && c.storageHandler.IsWatchchable() {
+		eg.Go(func() error {
+			c.watchConfig(sig)
+			return nil
+		})
+	}
 
 	// TODO: run the admin API
 

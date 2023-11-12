@@ -26,6 +26,8 @@ func NewJSONStorage(opts *Opts) *JSON {
 	}
 }
 
+func (j *JSON) IsWatchchable() bool { return true }
+
 // We can unwrap here because it is guaranteed that the config is not nil
 func (j *JSON) Path() string {
 	return j.config.

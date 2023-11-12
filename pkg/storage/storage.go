@@ -12,6 +12,7 @@ type Storage interface {
 	Path() string
 	Load() error
 	Persist() error
+	IsWatchchable() bool
 }
 
 type Opts struct {

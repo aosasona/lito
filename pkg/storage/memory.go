@@ -17,6 +17,8 @@ func NewMemoryStorage(opts *Opts) *Memory {
 	}
 }
 
+func (m *Memory) IsWatchchable() bool { return false }
+
 func (m *Memory) Path() string { return ":memory:" }
 
 func (m *Memory) Load() error { return nil }
