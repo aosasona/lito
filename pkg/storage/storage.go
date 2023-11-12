@@ -21,9 +21,17 @@ type Opts struct {
 
 // This needs to be setup to track the main instances of the Lito struct fields
 func New(opts *Opts) (Storage, error) {
-	defer utils.Assert(opts != nil, "opts is nil in storage package - this is definitely a bug")
-	defer utils.Assert(opts.Config != nil, "opts.Config is nil in storage package - this is definitely a bug")
-	defer utils.Assert(opts.LogHandler != nil, "opt.LogHandler is nil in storage package - this is definitely a bug")
+	utils.Assert(opts != nil, "opts is nil in storage package - this is probably a bug")
+	utils.Assert(opts.Config != nil, "opts.Config is nil in storage package - this is probably a bug")
+	utils.Assert(opts.LogHandler != nil, "opt.LogHandler is nil in storage package - this is probably a bug")
+
+	if opts.Config.Proxy.IsNone() {
+		return nil, fmt.Errorf("Proxy config is not set, this may be a bug, please investigate")
+	}
+
+	if opts.Config.Proxy.Unwrap().Storage.IsNone() {
+		return nil, fmt.Errorf("Storage config is not set, must be one of: memory, json")
+	}
 
 	switch opts.Config.Proxy.Unwrap().Storage.Unwrap() {
 	case types.StorageJSON:

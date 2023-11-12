@@ -27,6 +27,7 @@ var (
     "demo": {
       "host": "demo.com",
       "port": 80,
+      "path": null,
       "enable_tls": false,
       "domains": [
         {

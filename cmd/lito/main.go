@@ -11,7 +11,9 @@ import (
 	"go.trulyao.dev/lito/pkg/types"
 )
 
-const version = "1.0.0"
+const (
+	version = "0.1.0"
+)
 
 func main() {
 	app := &cli.App{
@@ -34,6 +36,7 @@ func main() {
 
 func run() error {
 	c := core.New(&core.Opts{
+		Debug: debug,
 		Config: &types.Config{
 			Admin: option.Some(&types.Admin{
 				Enabled: option.Some(enableAdmin),

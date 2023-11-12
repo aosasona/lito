@@ -52,6 +52,13 @@ type (
 	Logs []Log
 )
 
+func Field(key string, value any) Param {
+	return Param{
+		Key:   key,
+		Value: value,
+	}
+}
+
 func (l *Log) String() string {
 	encoded, err := json.Marshal(l)
 	if err != nil {

@@ -3,21 +3,25 @@ package core
 import (
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 
 	"go.trulyao.dev/lito/core/api/handlers"
 	"go.trulyao.dev/lito/pkg/logger"
+	"go.trulyao.dev/lito/pkg/storage"
 	"go.trulyao.dev/lito/pkg/types"
+	"golang.org/x/sync/errgroup"
 )
 
 type Core struct {
-	config       *types.Config
-	logHandler   logger.Logger
-	errorHandler types.ErrorHandler
+	debug          bool
+	config         *types.Config
+	storageHandler storage.Storage
+	logHandler     logger.Logger
+	errorHandler   types.ErrorHandler
 }
 
 type Opts struct {
+	Debug        bool
 	Config       *types.Config
 	LogHandler   logger.Logger
 	ErrorHandler types.ErrorHandler
@@ -35,38 +39,67 @@ func New(opts *Opts) *Core {
 		logHandler = opts.LogHandler
 	}
 
+	var storageHandler storage.Storage
+	if !opts.Config.Proxy.IsNone() {
+		if !opts.Config.Proxy.Unwrap().Storage.IsNone() {
+			logHandler.Info("loading storage handler", logger.Field("type", opts.Config.Proxy.Unwrap().Storage.Unwrap()))
+			storageHandler, _ = storage.New(&storage.Opts{
+				Config:     opts.Config,
+				LogHandler: logHandler,
+			})
+		}
+	}
+
 	return &Core{
-		config:       opts.Config,
-		logHandler:   logHandler,
-		errorHandler: errorHandler,
+		config:         opts.Config,
+		storageHandler: storageHandler,
+		logHandler:     logHandler,
+		errorHandler:   errorHandler,
 	}
 }
 
 // HandleShutdown handles the shutdown signal and gracefully shutdown the proxy while maintaining the current config and state
 // You should call this before you start the proxy - it will block until the shutdown signal is received
 func (c *Core) HandleShutdown(sig chan os.Signal) {
-	done := make(chan bool, 1)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 	<-sig
 
-	// TODO: shutdown the proxy and admin API if enabled
+	c.logHandler.Info("shutting down proxy")
+	c.stopProxy()
+	c.logHandler.Info("proxy shutdown complete")
 
-	<-done
+	if err := c.storageHandler.Persist(); err != nil {
+		c.logHandler.Error("failed to persist config", logger.Field("error", err))
+	}
+
+	if err := c.logHandler.Sync(); err != nil {
+		c.logHandler.Error("failed to sync log handler", logger.Field("error", err))
+	}
 }
 
 func (c *Core) Run() error {
-	wg := sync.WaitGroup{}
-
 	sig := make(chan os.Signal, 1)
 	go func() {
-		wg.Add(1)
 		c.HandleShutdown(sig)
 	}()
 
-	// TODO: run the proxy
+	if err := c.storageHandler.Load(); err != nil {
+		c.logHandler.Error("failed to load config", logger.Field("error", err))
+		return err
+	}
+
+	eg := errgroup.Group{}
+	eg.Go(func() error {
+		c.logHandler.Info("starting proxy")
+		return c.startProxy()
+	})
+
 	// TODO: run the admin API
 
-	wg.Wait()
+	if err := eg.Wait(); err != nil {
+		c.logHandler.Error("Something went horribly wrong", logger.Field("error", err.Error()))
+		return err
+	}
 
 	return nil
 }

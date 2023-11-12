@@ -36,7 +36,7 @@ func mockConfig(configPath ...string) types.Config {
 		}),
 		Services: map[string]*types.Service{
 			"demo": {
-				TargetHost: String("something.dp.com"),
+				TargetHost: String("https://something.dp.com"),
 				TargetPort: Int(80),
 				EnableTLS:  Bool(false),
 				Domains: []types.Domain{
@@ -50,7 +50,7 @@ func mockConfig(configPath ...string) types.Config {
 			},
 
 			"demo2": {
-				TargetHost: String("anotherdemo.com"),
+				TargetHost: String("https://anotherdemo.com"),
 				TargetPort: Int(80),
 				EnableTLS:  Bool(false),
 				Domains: []types.Domain{

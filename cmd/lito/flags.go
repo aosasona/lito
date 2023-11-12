@@ -7,6 +7,8 @@ import (
 )
 
 var (
+	debug = false
+
 	enableAdmin = false
 	adminPort   = 0
 	adminApiKey = ""
@@ -22,6 +24,13 @@ var (
 )
 
 var flags = []cli.Flag{
+	&cli.BoolFlag{
+		Name:        "debug",
+		Aliases:     []string{"d"},
+		Usage:       "Enable debug mode",
+		Value:       false,
+		Destination: &debug,
+	},
 	&cli.BoolFlag{
 		Name:        "enable-admin",
 		Aliases:     []string{"a"},
