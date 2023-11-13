@@ -15,15 +15,19 @@ type JSON struct {
 	logHandler logger.Logger
 }
 
-func NewJSONStorage(opts *Opts) *JSON {
+func NewJSONStorage(opts *Opts) (*JSON, error) {
 	if opts == nil {
-		panic("opts cannot be nil")
+		return nil, fmt.Errorf("opts provided in NewJSONStorage cannot be nil")
+	}
+
+	if opts.Config == nil {
+		return nil, fmt.Errorf("config provided in NewJSONStorage cannot be nil")
 	}
 
 	return &JSON{
 		config:     opts.Config,
 		logHandler: opts.LogHandler,
-	}
+	}, nil
 }
 
 func (j *JSON) IsWatchchable() bool { return true }
@@ -53,9 +57,7 @@ func (j *JSON) Load() error {
 
 	j.config.Update(config)
 
-	if j.logHandler != nil {
-		j.logHandler.Info("successfully loaded config from disk")
-	}
+	j.debug("successfully loaded config from disk")
 
 	return nil
 }
@@ -80,9 +82,7 @@ func (j *JSON) Persist() error {
 		return fmt.Errorf("failed to write config to disk: %s", err.Error())
 	}
 
-	if j.logHandler != nil {
-		j.logHandler.Info("successfully persisted config to disk")
-	}
+	j.debug("successfully persisted config to disk")
 
 	return nil
 }
@@ -148,9 +148,15 @@ func (j *JSON) exists() bool {
 func (j *JSON) isEmpty() bool {
 	fileInfo, err := os.Stat(j.Path())
 	if err != nil {
-		j.logHandler.Debug("failed to open config file, this might be a bug, check the error details to confirm", logger.Param{Key: "error", Value: err.Error()})
+		j.debug("failed to open config file, this might be a bug, check the error details to confirm", logger.Param{Key: "error", Value: err.Error()})
 		return true
 	}
 
 	return fileInfo.Size() == 0
+}
+
+func (j *JSON) debug(msg string, params ...logger.Param) {
+	if j.logHandler != nil {
+		j.logHandler.Debug(msg, params...)
+	}
 }

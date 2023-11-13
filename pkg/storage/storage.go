@@ -5,7 +5,6 @@ import (
 
 	"go.trulyao.dev/lito/pkg/logger"
 	"go.trulyao.dev/lito/pkg/types"
-	"go.trulyao.dev/lito/pkg/utils"
 )
 
 type Storage interface {
@@ -22,9 +21,13 @@ type Opts struct {
 
 // This needs to be setup to track the main instances of the Lito struct fields
 func New(opts *Opts) (Storage, error) {
-	utils.Assert(opts != nil, "opts is nil in storage package - this is probably a bug")
-	utils.Assert(opts.Config != nil, "opts.Config is nil in storage package - this is probably a bug")
-	utils.Assert(opts.LogHandler != nil, "opt.LogHandler is nil in storage package - this is probably a bug")
+	if opts == nil {
+		return nil, fmt.Errorf("opts provided in storage.New cannot be nil")
+	}
+
+	if opts.Config == nil {
+		return nil, fmt.Errorf("config provided in storage.New cannot be nil")
+	}
 
 	if opts.Config.Proxy.IsNone() {
 		return nil, fmt.Errorf("Proxy config is not set, this may be a bug, please investigate")
@@ -36,9 +39,9 @@ func New(opts *Opts) (Storage, error) {
 
 	switch opts.Config.Proxy.Unwrap().Storage.Unwrap() {
 	case types.StorageJSON:
-		return NewJSONStorage(opts), nil
+		return NewJSONStorage(opts)
 	case types.StorageMemory:
-		return NewMemoryStorage(opts), nil
+		return NewMemoryStorage(opts)
 	default:
 		return nil, fmt.Errorf("Unknown storage type: %v", opts.Config.Proxy.Unwrap().Storage)
 	}

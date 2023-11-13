@@ -100,10 +100,14 @@ var (
 )
 
 func Test_InitOnDisk(t *testing.T) {
-	j := NewJSONStorage(jsonOpts)
+	j, err := NewJSONStorage(jsonOpts)
+	if err != nil {
+		t.Fatalf("failed to create JSON storage: %v", err)
+		return
+	}
 
 	// try to init on disk
-	err := j.init()
+	err = j.init()
 	if err != nil {
 		t.Errorf("failed to init on disk: %v", err)
 	}
@@ -131,13 +135,18 @@ func Test_InitOnDisk(t *testing.T) {
 
 func Test_Load(t *testing.T) {
 	// init mock config on disk so we can load it again and compare
-	tempJ := NewJSONStorage(jsonOpts)
-	err := tempJ.init()
+	tempJ, err := NewJSONStorage(jsonOpts)
 	if err != nil {
+		t.Fatalf("failed to create JSON storage: %v", err)
+	}
+	if err = tempJ.init(); err != nil {
 		t.Errorf("failed to init on disk: %v", err)
 	}
 
-	j := NewJSONStorage(&Opts{Config: &types.Config{Proxy: option.Some(&types.Proxy{ConfigPath: String(mockConfigPath)})}})
+	j, err := NewJSONStorage(&Opts{Config: &types.Config{Proxy: option.Some(&types.Proxy{ConfigPath: String(mockConfigPath)})}})
+	if err != nil {
+		t.Fatalf("failed to create JSON storage: %v", err)
+	}
 	defer func() {
 		// clean up
 		err = j.remove()
@@ -163,9 +172,11 @@ func Test_Load(t *testing.T) {
 
 func Test_Persist(t *testing.T) {
 	// init mock config on disk so we can load it again and compare
-	tempJ := NewJSONStorage(jsonOpts)
-	err := tempJ.init()
+	tempJ, err := NewJSONStorage(jsonOpts)
 	if err != nil {
+		t.Fatalf("failed to create JSON storage: %v", err)
+	}
+	if err = tempJ.init(); err != nil {
 		t.Errorf("failed to init on disk: %v", err)
 	}
 
@@ -176,7 +187,11 @@ func Test_Persist(t *testing.T) {
 	opts.Config.Proxy.Unwrap().TLSEmail = String("john@doe.com")
 	opts.Config.Services["demo"].TargetPort = Int(5000)
 
-	j := NewJSONStorage(opts)
+	j, err := NewJSONStorage(opts)
+	if err != nil {
+		t.Fatalf("failed to create JSON storage: %v", err)
+	}
+
 	defer func() {
 		// clean up
 		err = j.remove()
@@ -214,7 +229,11 @@ func Test_Persist(t *testing.T) {
 func Test_Full(t *testing.T) {
 	opts := jsonOpts
 
-	j := NewJSONStorage(opts)
+	j, err := NewJSONStorage(opts)
+	if err != nil {
+		t.Fatalf("failed to create JSON storage: %v", err)
+	}
+
 	defer func() {
 		// clean up
 		err := j.remove()
@@ -224,7 +243,7 @@ func Test_Full(t *testing.T) {
 	}()
 
 	// Load should and will always be called on startup
-	err := j.Load()
+	err = j.Load()
 	if err != nil {
 		t.Errorf("failed to load from disk: %v", err)
 	}
