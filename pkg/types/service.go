@@ -31,12 +31,14 @@ func (s *Service) GetTargetHost() string {
 		return ""
 	}
 
+	// Append port if port is not a common port (80, 443)
 	var port string
-	if !s.TargetPort.IsNone() {
+	if !s.TargetPort.IsNone() && s.TargetPort.Unwrap() != 80 && s.TargetPort.Unwrap() != 443 {
 		port = ":" + s.TargetPort.String()
 	}
-
 	host := strings.TrimSuffix(s.TargetHost.Unwrap(), "/") + port
+
+	// Append path to host
 	if !s.TargetPath.IsNone() {
 		path := s.TargetPath.Unwrap()
 		if strings.HasPrefix(path, "/") {
@@ -46,9 +48,16 @@ func (s *Service) GetTargetHost() string {
 		}
 	}
 
+	// Remove trailing slash
+	if strings.HasSuffix(host, "/") {
+		host = strings.TrimSuffix(host, "/")
+	}
+
+	// If it is already a full URL, return it
 	if strings.HasPrefix(host, "http://") || strings.HasPrefix(host, "https://") || strings.HasPrefix(host, "ws://") || strings.HasPrefix(host, "wss://") {
 		return host
 	}
 
+	// Otherwise, assume it is http
 	return "http://" + host
 }

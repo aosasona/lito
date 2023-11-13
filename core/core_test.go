@@ -38,6 +38,7 @@ func mockConfig(configPath ...string) types.Config {
 			"demo": {
 				TargetHost: String("https://something.dp.com"),
 				TargetPort: Int(80),
+				TargetPath: String("/demo"),
 				EnableTLS:  Bool(false),
 				Domains: []types.Domain{
 					{

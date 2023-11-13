@@ -1,6 +1,7 @@
 package core
 
 import (
+	"net/http"
 	"testing"
 )
 
@@ -65,5 +66,40 @@ func Test_FindServiceByHostName(t *testing.T) {
 		if service != nil && service.TargetHost.Unwrap() != test.ExpectedTargetHost {
 			t.Errorf("findServiceByDomainName(%s) = %v, want %v", test.DomainName, service.TargetHost, test.ExpectedTargetHost)
 		}
+	}
+}
+
+func Test_ProxyDirector(t *testing.T) {
+	request, err := http.NewRequest("GET", "https://demo.com", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	config := mockConfig()
+	New(&Opts{Config: &config}).proxyDirector(request)
+
+	if request.URL.Scheme != "https" {
+		t.Errorf("proxyDirector() = %v, want %v", request.URL.Scheme, "https")
+	}
+
+	if request.URL.Host != "something.dp.com" {
+		t.Errorf("proxyDirector() = %v, want %v", request.URL.Host, "something.dp.com")
+	}
+
+	if request.URL.Path != "/demo/" {
+		t.Errorf("proxyDirector() = %v, want %v", request.URL.Path, "/demo/")
+	}
+
+	if request.URL.RawQuery != "" {
+		t.Errorf("proxyDirector() = %v, want %v", request.URL.RawQuery, "")
+	}
+
+	if request.Header.Get("X-Service-Name") != "demo" {
+		t.Errorf("proxyDirector() = %v, want %v", request.Header.Get("X-Service-Name"), "demo")
+	}
+
+	// Test full URL
+	if request.URL.String() != "https://something.dp.com/demo/" {
+		t.Errorf("proxyDirector() = %v, want %v", request.URL.String(), "https://something.dp.com/demo")
 	}
 }
