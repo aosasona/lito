@@ -84,6 +84,11 @@ func (c *Core) HandleShutdown(sig chan os.Signal) {
 	}
 }
 
+func (c *Core) performSanityCheck() error {
+	// TODO: if TLS is enabled, check if the tls email is set
+	return nil
+}
+
 func (c *Core) Run() error {
 	sig := make(chan os.Signal, 1)
 	go func() {
