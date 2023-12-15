@@ -8,10 +8,10 @@ import (
 )
 
 type Config struct {
-	Admin    option.Option[*Admin] `json:"admin"`
-	Services map[string]*Service   `json:"services"`
-	Proxy    option.Option[*Proxy] `json:"proxy"`
-	rmu      sync.RWMutex
+	Admin    option.Option[*Admin] `json:"admin,omitempty" ts:"type:Admin"`
+	Services map[string]*Service   `json:"services,omitempty"`
+	Proxy    option.Option[*Proxy] `json:"proxy,omitempty" ts:"type:Proxy"`
+	rmu      sync.RWMutex          `json:"-" ts:"-"`
 }
 
 func (c *Config) Lock() { c.rmu.Lock() }

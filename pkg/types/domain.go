@@ -19,7 +19,7 @@ type DomainStatusDNS struct {
 
 type DomainStatus struct {
 	// DNS is the DNS status for the domain
-	DNS DomainStatusDNS `json:"dns" ts:"'verified' | 'pending' | 'aborted'"`
+	DNS DomainStatusDNS `json:"dns" ts:"type:DomainStatusDNS"`
 }
 
 type Domain struct {
@@ -27,5 +27,5 @@ type Domain struct {
 	DomainName string `json:"name"`
 
 	// Status is the certificate and DNS status for the domain
-	Status DomainStatus `json:"status"`
+	Status DomainStatus `json:"status,omitempty"`
 }

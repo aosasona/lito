@@ -8,22 +8,22 @@ import (
 
 type Service struct {
 	// TargetHost is the host that the service will forward to, this should be in the format of scheme://host
-	TargetHost option.String `json:"host"`
+	TargetHost option.String `json:"host,omitempty" ts:"type:string"`
 
 	// TargetPort is the port that the service will forward to
-	TargetPort option.Int `json:"port,omitempty"`
+	TargetPort option.Int `json:"port,omitempty" ts:"type:number"`
 
 	// TargetPath is the path that the service will forward to; this will be appended to the request path
-	TargetPath option.String `json:"path,omitempty"`
+	TargetPath option.String `json:"path,omitempty" ts:"type:string"`
 
 	// EnableTLS is a flag to enable TLS for the service
-	EnableTLS option.Bool `json:"enable_tls"`
+	EnableTLS option.Bool `json:"enable_tls,omitempty" ts:"type:boolean"`
 
 	// Domains is a list of domains that the service will respond to
-	Domains []Domain `json:"domains"`
+	Domains []Domain `json:"domains,omitempty" ts:"type:Domain[]"`
 
 	// StripHeaders is a list of headers that will be stripped from the request before forwarding
-	StripHeaders option.Option[[]string] `json:"strip_headers"`
+	StripHeaders option.Option[[]string] `json:"strip_headers,omitempty" ts:"type:string[]"`
 }
 
 func (s *Service) GetTargetHost() string {
