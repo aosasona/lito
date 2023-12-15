@@ -103,7 +103,11 @@ func (c *Core) Run() error {
 	eg := errgroup.Group{}
 
 	eg.Go(func() error {
-		c.logHandler.Info("starting proxy")
+		if c.config.Proxy.IsNone() {
+			return errors.New("no proxy config present")
+		}
+
+		c.logHandler.Info("starting proxy server", logger.Field("port", c.config.Proxy.Unwrap().HTTPPort.UnwrapOr(80)))
 		if err := c.startProxy(); err != nil {
 			if errors.Is(http.ErrServerClosed, err) {
 				return nil

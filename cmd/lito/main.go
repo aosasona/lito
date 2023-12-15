@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/urfave/cli/v2"
+	cli "github.com/urfave/cli/v2"
 	"go.trulyao.dev/lito/core"
 	"go.trulyao.dev/lito/ext/option"
 	"go.trulyao.dev/lito/pkg/logger"

@@ -1,6 +1,8 @@
 package core
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -14,12 +16,17 @@ var proxyHttpServer *http.Server
 
 // TODO: drop certmagic in here to use tls if turned on
 func (c *Core) startProxy() error {
+	if c.config.Proxy.IsNone() {
+		return errors.New("no proxy config present")
+	}
+
 	reverseProxy := &httputil.ReverseProxy{
 		Director: c.proxyDirector,
 	}
 
+	httpPort := c.config.Proxy.Unwrap().HTTPPort.UnwrapOr(80)
 	proxyHttpServer = &http.Server{
-		Addr:    ":80",
+		Addr:    fmt.Sprintf(":%d", httpPort),
 		Handler: reverseProxy,
 	}
 
