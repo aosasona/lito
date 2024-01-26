@@ -23,7 +23,7 @@ func New(level LogLevel, path string) Logger {
 		DefaultLogLevel: level,
 		Path:            path,
 		buffer:          make([]Log, 0),
-		maxBufferSize:   100,
+		maxBufferSize:   256,
 	}
 }
 
