@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 
 	"go.trulyao.dev/lito/core/api/handlers"
@@ -20,6 +21,7 @@ type Core struct {
 	storageHandler storage.Storage
 	logHandler     logger.Logger
 	errorHandler   types.ErrorHandler
+	mutex          sync.Mutex
 }
 
 type Opts struct {
@@ -85,7 +87,12 @@ func (c *Core) HandleShutdown(sig chan os.Signal) {
 }
 
 func (c *Core) performSanityCheck() error {
-	// TODO: if TLS is enabled, check if the tls email is set
+	if c.config.Proxy.IsSome() {
+		if c.config.Proxy.DangerouslyUnwrap().EnableTLS.Unwrap(false) && c.config.Proxy.DangerouslyUnwrap().TLSEmail.Unwrap("") == "" {
+			return errors.New("TLS email is not set but TLS is enabled!")
+		}
+	}
+
 	return nil
 }
 
@@ -97,6 +104,10 @@ func (c *Core) Run() error {
 
 	if err := c.storageHandler.Load(); err != nil {
 		c.logHandler.Error("failed to load config", logger.Field("error", err))
+		return err
+	}
+
+	if err := c.performSanityCheck(); err != nil {
 		return err
 	}
 

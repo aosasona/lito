@@ -39,9 +39,14 @@ func None[T any]() Option[T] {
 	return Option[T]{nil}
 }
 
-// Value returns the value of the option - ensure that the option is not None before calling this.
+// rawValue returns the value of the option - ensure that the option is not None before calling this.
 func (o *Option[T]) rawValue() T {
 	return *o.value
+}
+
+// DangerouslyUnwrap returns the value of the option - of course, it is aptly named as it is dangerous.
+func (o *Option[T]) DangerouslyUnwrap() T {
+	return o.rawValue()
 }
 
 // Type returns the type of the option as an integer that can be matched against TypeNone and TypeSome.

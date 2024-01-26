@@ -3,6 +3,7 @@ package logger
 import (
 	"fmt"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -11,6 +12,7 @@ type DefaultLogger struct {
 	Path            string
 	buffer          Logs
 	maxBufferSize   int
+	mutex           sync.Mutex
 }
 
 var DefaultLogHandler = &DefaultLogger{
@@ -88,6 +90,9 @@ func (l *DefaultLogger) makeLog(level LogLevel, msg string, params []Param) *Log
 
 // appendToBuffer appends a log to the buffer and flushes the buffer if it is full
 func (l *DefaultLogger) appendToBuffer(log *Log) error {
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+
 	l.buffer = append(l.buffer, *log)
 
 	if len(l.buffer) >= l.maxBufferSize {
@@ -103,19 +108,25 @@ func (l *DefaultLogger) appendToBuffer(log *Log) error {
 }
 
 func (l *DefaultLogger) commit() error {
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+
 	f, err := os.OpenFile(l.Path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
 
+	var bufferString string
 	for _, log := range l.buffer {
-		_, err := f.WriteString(log.String() + "\n")
-		if err != nil {
-			return err
-		}
+		bufferString += log.String() + "\n"
 	}
 
-	l.buffer = make([]Log, 0)
+	_, err = f.WriteString(bufferString)
+	if err != nil {
+		return err
+	}
+
+	l.buffer = l.buffer[:0] // reset buffer by slicing it to 0
 	return nil
 }
 

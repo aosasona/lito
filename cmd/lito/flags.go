@@ -18,7 +18,7 @@ var (
 	httpPort            = 0
 	httpsPort           = 0
 	tlsEmail            = ""
-	enableTLS           = true
+	enableTLS           = false
 	enableHTTPSRedirect = true
 	storageType         = types.StorageMemory
 )
