@@ -40,3 +40,15 @@ type Proxy struct {
 	// CNames is a list of CNAMEs associated with the proxy/host running Lito
 	CNames option.Option[[]string] `json:"cnames,omitempty" ts:"type:string[]"`
 }
+
+var DefaultProxy = Proxy{
+	Host:                option.StringValue("0.0.0.0"),
+	HTTPPort:            option.IntValue(80),
+	HTTPSPort:           option.IntValue(443),
+	EnableTLS:           option.BoolValue(false),
+	TLSEmail:            option.StringValue(""),
+	EnableHTTPSRedirect: option.BoolValue(false),
+	ConfigPath:          option.StringValue("lito.json"),
+	Storage:             option.Some(StorageMemory),
+	CNames:              option.None[[]string](),
+}

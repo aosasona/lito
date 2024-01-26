@@ -12,7 +12,7 @@ func Test_OptionInt(t *testing.T) {
 		t.Errorf("OptionInt should not be None")
 	}
 
-	if i.Value() != 42 {
+	if i.Unwrap(0) != 42 {
 		t.Errorf("OptionInt should be 42")
 	}
 
@@ -62,7 +62,7 @@ func Test_OptionString(t *testing.T) {
 		t.Errorf("OptionString should not be None")
 	}
 
-	if s.Value() != "foo" {
+	if s.Unwrap("") != "foo" {
 		t.Errorf("OptionString should be foo")
 	}
 
@@ -112,7 +112,7 @@ func Test_OptionBool(t *testing.T) {
 		t.Errorf("OptionBool should not be None")
 	}
 
-	if b.Value() != true {
+	if b.Unwrap(false) != true {
 		t.Errorf("OptionBool should be true")
 	}
 
@@ -166,7 +166,7 @@ func Test_OptionStruct(t *testing.T) {
 		t.Errorf("OptionStruct should not be None")
 	}
 
-	if f.Value().Bar != "baz" {
+	if f.Unwrap(Foo{}).Bar != "baz" {
 		t.Errorf("OptionStruct should be baz")
 	}
 
@@ -220,7 +220,7 @@ func Test_OptionSlice(t *testing.T) {
 		t.Errorf("OptionSlice should not be None")
 	}
 
-	if s.Value()[0] != "foo" {
+	if s.Unwrap([]string{})[0] != "foo" {
 		t.Errorf("OptionSlice should be foo")
 	}
 
@@ -271,7 +271,7 @@ func Test_OptionMap(t *testing.T) {
 		t.Errorf("OptionMap should not be None")
 	}
 
-	if m.Value()["foo"] != "bar" {
+	if m.Unwrap(map[string]string{})["foo"] != "bar" {
 		t.Errorf("OptionMap[foo] should be bar")
 	}
 }
@@ -313,7 +313,7 @@ func Test_OptionPointer(t *testing.T) {
 		t.Errorf("OptionPointer should not be None")
 	}
 
-	s.Unwrap().Foo = "foobaz"
+	s.Unwrap(&MyStruct{}).Foo = "foobaz"
 
 	if d.Foo != "foobaz" {
 		t.Errorf("OptionPointer should be foobaz, got %s", d.Foo)

@@ -182,10 +182,12 @@ func Test_Persist(t *testing.T) {
 
 	// simulate updating data
 	opts := jsonOpts
-	opts.Config.Admin.Unwrap().Port = Int(21000)
-	opts.Config.Proxy.Unwrap().EnableTLS = Bool(false)
-	opts.Config.Proxy.Unwrap().TLSEmail = String("john@doe.com")
-	opts.Config.Services["demo"].TargetPort = Int(5000)
+	opts.Config.Admin.Unwrap(&types.DefaultAdmin).Port = Int(21000)
+	opts.Config.Proxy.Unwrap(&types.DefaultProxy).EnableTLS = Bool(false)
+	opts.Config.Proxy.Unwrap(&types.DefaultProxy).TLSEmail = String("john@doe.com")
+	if s, ok := opts.Config.Services["demo"]; ok {
+		s.TargetPort = Int(5000)
+	}
 
 	j, err := NewJSONStorage(opts)
 	if err != nil {
@@ -252,9 +254,9 @@ func Test_Full(t *testing.T) {
 	// Previous versions had a bug where the config file would completely be blank on persist; main reason for this test and rewrite
 	for i := 0; i < 10; i++ {
 		go func() {
-			opts.Config.Admin.Unwrap().Port = Int(opts.Config.Admin.Unwrap().Port.Unwrap() + 100)
-			opts.Config.Proxy.Value().EnableTLS = Bool(!opts.Config.Proxy.Unwrap().EnableTLS.Unwrap())
-			opts.Config.Proxy.Unwrap().HTTPPort = Int(opts.Config.Proxy.Unwrap().HTTPPort.Unwrap() + 1000)
+			opts.Config.Admin.Unwrap(&types.DefaultAdmin).Port = Int(opts.Config.Admin.Unwrap(&types.DefaultAdmin).Port.Unwrap(0) + 100)
+			opts.Config.Proxy.Unwrap(&types.DefaultProxy).EnableTLS = Bool(!opts.Config.Proxy.Unwrap(&types.DefaultProxy).EnableTLS.Unwrap(false))
+			opts.Config.Proxy.Unwrap(&types.DefaultProxy).HTTPPort = Int(opts.Config.Proxy.Unwrap(&types.DefaultProxy).HTTPPort.Unwrap(0) + 1000)
 			err := j.Persist()
 			if err != nil {
 				t.Errorf("failed to persist: %v", err)

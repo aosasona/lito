@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"strings"
 
+	"go.trulyao.dev/lito/ext/option"
 	"go.trulyao.dev/lito/pkg/logger"
 	"go.trulyao.dev/lito/pkg/types"
 )
@@ -24,7 +25,7 @@ func (c *Core) startProxy() error {
 		Director: c.proxyDirector,
 	}
 
-	httpPort := c.config.Proxy.Unwrap().HTTPPort.UnwrapOr(80)
+	httpPort := c.config.Proxy.Unwrap(&types.DefaultProxy).HTTPPort.Unwrap(80)
 	proxyHttpServer = &http.Server{
 		Addr:    fmt.Sprintf(":%d", httpPort),
 		Handler: reverseProxy,
@@ -40,13 +41,15 @@ func (c *Core) stopProxy() error {
 func (c *Core) proxyDirector(req *http.Request) {
 	req.Header.Del("X-Forwarded-For")
 
-	serviceName, targetService, ok := c.findServiceByDomainName(req.Host)
+	serviceName, optService, ok := c.findServiceByDomainName(req.Host)
 	if !ok {
 		if c.debug {
 			c.logHandler.Debug("no service found for domain", logger.Field("domain", req.Host))
 		}
 		return
 	}
+
+	targetService := optService.Unwrap(&types.DefaultService)
 
 	targetURL, err := url.Parse(targetService.GetTargetHost())
 	if err != nil {
@@ -66,7 +69,7 @@ func (c *Core) proxyDirector(req *http.Request) {
 	}
 
 	// Strip all headers that are specified in the service
-	for _, header := range targetService.StripHeaders.UnwrapOr([]string{}) {
+	for _, header := range targetService.StripHeaders.Unwrap([]string{}) {
 		req.Header.Del(header)
 	}
 
@@ -86,24 +89,24 @@ func (c *Core) proxyDirector(req *http.Request) {
 }
 
 // findServiceByName finds a service by its name
-func (c *Core) findServiceByName(name string) (*types.Service, bool) {
+func (c *Core) findServiceByName(name string) (option.Option[*types.Service], bool) {
 	service, ok := c.config.Services[name]
 	if !ok {
-		return nil, false
+		return option.None[*types.Service](), false
 	}
-	return service, true
+	return option.Some(service), true
 }
 
 // findServiceByHostname finds a service by the domain the request is issued to
-func (c *Core) findServiceByDomainName(domainName string) (string, *types.Service, bool) {
+func (c *Core) findServiceByDomainName(domainName string) (string, option.Option[*types.Service], bool) {
 	for name, service := range c.config.Services {
 		for _, serviceHost := range service.Domains {
 			if serviceHost.DomainName == domainName {
-				return name, service, true
+				return name, option.Some(service), true
 			}
 		}
 	}
-	return "", nil, false
+	return "", option.None[*types.Service](), false
 }
 
 // Source: net/http/httputil/reverseproxy.go

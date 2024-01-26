@@ -47,8 +47,8 @@ func New(opts *Opts) *Core {
 
 	var storageHandler storage.Storage
 	if !opts.Config.Proxy.IsNone() {
-		if !opts.Config.Proxy.Unwrap().Storage.IsNone() {
-			logHandler.Info("loading storage handler", logger.Field("type", opts.Config.Proxy.Unwrap().Storage.Unwrap()))
+		if !opts.Config.Proxy.Unwrap(&types.DefaultProxy).Storage.IsNone() {
+			logHandler.Info("loading storage handler", logger.Field("type", opts.Config.Proxy.Unwrap(&types.DefaultProxy).Storage.Unwrap(types.StorageMemory)))
 			storageHandler, _ = storage.New(&storage.Opts{
 				Config:     opts.Config,
 				LogHandler: logHandler,
@@ -107,7 +107,7 @@ func (c *Core) Run() error {
 			return errors.New("no proxy config present")
 		}
 
-		c.logHandler.Info("starting proxy server", logger.Field("port", c.config.Proxy.Unwrap().HTTPPort.UnwrapOr(80)))
+		c.logHandler.Info("starting proxy server", logger.Field("port", c.config.Proxy.Unwrap(&types.DefaultProxy).HTTPPort.Unwrap(80)))
 		if err := c.startProxy(); err != nil {
 			if errors.Is(http.ErrServerClosed, err) {
 				return nil
@@ -119,7 +119,10 @@ func (c *Core) Run() error {
 		return nil
 	})
 
-	adminApiEnabled := c.config.Admin.IsSome() && c.config.Admin.Unwrap().Enabled.IsSome() && c.config.Admin.Unwrap().Enabled.Unwrap() == true
+	adminApiEnabled := c.config.Admin.IsSome() &&
+		c.config.Admin.Unwrap(&types.DefaultAdmin).Enabled.IsSome() &&
+		c.config.Admin.Unwrap(&types.DefaultAdmin).Enabled.Unwrap(false) == true
+
 	if !adminApiEnabled && c.storageHandler.IsWatchchable() {
 		eg.Go(func() error {
 			c.watchConfig(sig)

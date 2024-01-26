@@ -26,21 +26,32 @@ type Service struct {
 	StripHeaders option.Option[[]string] `json:"strip_headers,omitempty" ts:"type:string[]"`
 }
 
+var DefaultService = Service{
+	TargetHost:   option.None[string](),
+	TargetPort:   option.None[int](),
+	TargetPath:   option.None[string](),
+	EnableTLS:    option.None[bool](),
+	Domains:      []Domain{},
+	StripHeaders: option.None[[]string](),
+}
+
 func (s *Service) GetTargetHost() string {
 	if s.TargetHost.IsNone() {
 		return ""
 	}
 
+	var host, port string
+
 	// Append port if port is not a common port (80, 443)
-	var port string
-	if !s.TargetPort.IsNone() && s.TargetPort.Unwrap() != 80 && s.TargetPort.Unwrap() != 443 {
-		port = ":" + s.TargetPort.String()
+	if s.TargetPort.Unwrap(80) != 80 && s.TargetPort.Unwrap(80) != 443 {
+		port = ":" + s.TargetPort.StringWithDefault("")
 	}
-	host := strings.TrimSuffix(s.TargetHost.Unwrap(), "/") + port
+
+	host = strings.TrimSuffix(s.TargetHost.Unwrap(""), "/") + port
 
 	// Append path to host
 	if !s.TargetPath.IsNone() {
-		path := s.TargetPath.Unwrap()
+		path := s.TargetPath.Unwrap("/")
 		if strings.HasPrefix(path, "/") {
 			host += path
 		} else {

@@ -23,3 +23,9 @@ type Admin struct {
 	// APIKey is the key that the admin API will use for authentication
 	APIKey option.String `json:"api_key,omitempty" ts:"type:string"`
 }
+
+var DefaultAdmin = Admin{
+	Enabled: option.BoolValue(false),
+	Port:    option.None[int](),
+	APIKey:  option.None[string](),
+}

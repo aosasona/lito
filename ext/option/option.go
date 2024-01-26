@@ -15,6 +15,11 @@ type (
 	Bool   = Option[bool]
 )
 
+const (
+	TypeNone int8 = iota
+	TypeSome
+)
+
 func IntValue(v int) Int            { return Some(v) }
 func StringValue(v string) String   { return Some(v) }
 func BoolValue(v bool) Bool         { return Some(v) }
@@ -35,46 +40,48 @@ func None[T any]() Option[T] {
 }
 
 // Value returns the value of the option - ensure that the option is not None before calling this.
-func (o Option[T]) Value() T {
+func (o *Option[T]) rawValue() T {
 	return *o.value
 }
 
+// Type returns the type of the option as an integer that can be matched against TypeNone and TypeSome.
+func (o Option[T]) Type() int8 {
+	if o.IsNone() {
+		return TypeNone
+	}
+
+	return TypeSome
+}
+
 // IsNone returns true if the option is None.
-func (o Option[T]) IsNone() bool {
+func (o *Option[T]) IsNone() bool {
 	return o.value == nil
 }
 
 // IsSome returns true if the option is not None.
-func (o Option[T]) IsSome() bool {
+func (o *Option[T]) IsSome() bool {
 	return o.value != nil
 }
 
-// Unwrap returns the value of the option, or panics if the option is None.
-// This is useful for tests, but should be avoided in production code.
-func (o Option[T]) Unwrap() T {
-	if o.IsNone() {
-		panic("unwrap called on `None` value")
-	}
-	return o.Value()
-}
-
-// UnwrapOr returns the value of the option, or the given default value if the option is None.
-func (o Option[T]) UnwrapOr(defaultValue T) T {
+// Unwrap returns the value of the option, or the given default value if the option is None.
+// This makes sure you are never dealing with a nil value.
+func (o *Option[T]) Unwrap(defaultValue T) T {
 	if o.IsNone() {
 		return defaultValue
 	}
-	return o.Value()
+	return o.rawValue()
 }
 
 // UnwrapOrElse returns the value of the option, or the result of the given function if the option is None.
-func (o Option[T]) UnwrapOrElse(f func() T) T {
+func (o *Option[T]) UnwrapOrElse(f func() T) T {
 	if o.IsNone() {
 		return f()
 	}
-	return o.Value()
+	return o.rawValue()
 }
 
-func (o Option[T]) UnwrapPtr() *T {
+// DangerouslyUnwrapPtr returns the value of the option as a pointer - of course, it is also aptly named as it is dangerous.
+func (o *Option[T]) DangerouslyUnwrapPtr() *T {
 	if o.IsNone() {
 		return nil
 	}
@@ -86,7 +93,7 @@ func (o Option[T]) MarshalJSON() ([]byte, error) {
 	if o.IsNone() {
 		return []byte("null"), nil
 	}
-	return json.Marshal(o.Value())
+	return json.Marshal(o.rawValue())
 }
 
 // Map returns a new option with the result of the given function applied to the value of the option.
@@ -105,10 +112,13 @@ func (o *Option[T]) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (o *Option[T]) String() string {
-	return fmt.Sprintf("%v", o.Value())
+func (o *Option[T]) StringWithDefault(alt string) string {
+	if o.IsNone() {
+		return alt
+	}
+	return fmt.Sprintf("%v", o.rawValue())
 }
 
 func (o *Option[T]) RawString() string {
-	return fmt.Sprintf("Option[%v]", o.Value())
+	return fmt.Sprintf("Option[%v]", o.rawValue())
 }

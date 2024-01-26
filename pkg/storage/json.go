@@ -35,8 +35,8 @@ func (j *JSON) IsWatchchable() bool { return true }
 // We can unwrap here because it is guaranteed that the config is not nil
 func (j *JSON) Path() string {
 	return j.config.
-		Proxy.Unwrap().
-		ConfigPath.Unwrap()
+		Proxy.Unwrap(&types.DefaultProxy).
+		ConfigPath.Unwrap("lito.json")
 }
 
 // Load reads the config from disk and loads it into memory, creating it if it doesn't exist yet
