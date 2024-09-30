@@ -14,7 +14,7 @@ import (
 	"go.trulyao.dev/lito/pkg/types"
 )
 
-var proxyHttpServer *http.Server
+var proxyHTTPServer *http.Server
 
 // TODO: drop certmagic in here to use tls if turned on
 func (c *Core) startProxy() error {
@@ -27,16 +27,16 @@ func (c *Core) startProxy() error {
 	}
 
 	httpPort := ref.Deref(c.config.Proxy.HTTPPort, 80)
-	proxyHttpServer = &http.Server{
+	proxyHTTPServer = &http.Server{
 		Addr:    fmt.Sprintf(":%d", httpPort),
 		Handler: reverseProxy,
 	}
 
-	return proxyHttpServer.ListenAndServe()
+	return proxyHTTPServer.ListenAndServe()
 }
 
 func (c *Core) stopProxy() error {
-	return proxyHttpServer.Shutdown(context.TODO())
+	return proxyHTTPServer.Shutdown(context.TODO())
 }
 
 func (c *Core) proxyDirector(req *http.Request) {

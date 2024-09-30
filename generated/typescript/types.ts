@@ -5,25 +5,25 @@
  */
 
 export type Proxy = {
-    host?: string | null;
-    http_port?: number | null;
-    https_port?: number | null;
-    enable_tls?: boolean | null;
-    tls_email?: string | null;
-    enable_https_redirect?: boolean | null;
-    config_path?: string | null;
-    storage?: "json" | "sqlite" | "memory" | null;
-    cnames?: string[] | null;
+    host?: string;
+    http_port?: number;
+    https_port?: number;
+    enable_tls?: boolean;
+    tls_email?: string;
+    enable_https_redirect?: boolean;
+    config_path?: string;
+    storage?: 'json' | 'sqlite' | 'memory' | null;
+    cnames?: Array<string>;
 };
 
 export type Admin = {
-    enabled?: boolean | null;
-    port?: number | null;
-    api_key?: string | null;
+    enabled?: boolean;
+    port?: number;
+    api_key?: string;
 };
 
 export type DomainStatusDNS = {
-    value: "verified" | "pending" | "aborted" | "failed";
+    value: 'verified' | 'pending' | 'aborted' | 'failed';
     current_retry_count: number;
     last_updated: number;
 };
@@ -38,26 +38,23 @@ export type Domain = {
 };
 
 export type Service = {
-    host?: string | null;
-    port?: number | null;
-    path?: string | null;
-    enable_tls?: boolean | null;
-    domains?: Domain[] | null;
-    strip_headers?: string[] | null;
+    host?: string;
+    port?: number;
+    path?: string;
+    enable_tls?: boolean;
+    domains?: Array<Domain>;
+    strip_headers?: Array<string>;
 };
 
 export type Config = {
-    admin?: Admin | null;
-    services?: Record<
-        string,
-        {
-            host?: string | null;
-            port?: number | null;
-            path?: string | null;
-            enable_tls?: boolean | null;
-            domains?: Domain[] | null;
-            strip_headers?: string[] | null;
-        } | null
-    >;
-    proxy?: Proxy | null;
+    admin?: Admin;
+    services?: Record<string, {
+        host?: string;
+        port?: number;
+        path?: string;
+        enable_tls?: boolean;
+        domains?: Array<Domain>;
+        strip_headers?: Array<string>;
+    } | null>;
+    proxy?: Proxy;
 };

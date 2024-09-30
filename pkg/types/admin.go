@@ -6,13 +6,13 @@ import (
 
 type Admin struct {
 	// EnableAPI is a flag to enable the admin API
-	Enabled *bool `json:"enabled,omitempty" mirror:"type:boolean"`
+	Enabled *bool `json:"enabled,omitempty"`
 
 	// Port is the port that the admin API will listen on
-	Port *int `json:"port,omitempty" mirror:"type:number"`
+	Port *int `json:"port,omitempty"`
 
 	// APIKey is the key that the admin API will use for authentication
-	APIKey *string `json:"api_key,omitempty" mirror:"type:string"`
+	APIKey *string `json:"api_key,omitempty"`
 }
 
 var DefaultAdmin = Admin{

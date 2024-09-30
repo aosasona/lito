@@ -6,10 +6,10 @@ import (
 )
 
 type Config struct {
-	Admin    *Admin              `json:"admin,omitempty" mirror:"type:Admin"`
+	Admin    *Admin              `json:"admin,omitempty"`
 	Services map[string]*Service `json:"services,omitempty"`
-	Proxy    *Proxy              `json:"proxy,omitempty" mirror:"type:Proxy"`
-	rmu      sync.RWMutex        `json:"-" mirror:"-"`
+	Proxy    *Proxy              `json:"proxy,omitempty"`
+	rmu      sync.RWMutex        `json:"-"                  mirror:"-"`
 }
 
 func (c *Config) Lock() { c.rmu.Lock() }
