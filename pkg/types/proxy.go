@@ -1,6 +1,8 @@
 package types
 
-import "go.trulyao.dev/lito/ext/option"
+import (
+	"go.trulyao.dev/lito/pkg/ref"
+)
 
 type Storage string
 
@@ -14,41 +16,41 @@ const (
 
 type Proxy struct {
 	// Host is the host that the proxy will listen on
-	Host option.String `json:"host,omitempty" ts:"type:string"`
+	Host *string `json:"host,omitempty" mirror:"type:string"`
 
 	// HTTPPort is the port that the proxy will listen on for HTTP connections
-	HTTPPort option.Int `json:"http_port,omitempty" ts:"type:number"`
+	HTTPPort *int `json:"http_port,omitempty" mirror:"type:number"`
 
 	// HTTPSPort is the port that the proxy will listen on for TLS connections
-	HTTPSPort option.Int `json:"https_port,omitempty" ts:"type:number"`
+	HTTPSPort *int `json:"https_port,omitempty" mirror:"type:number"`
 
 	// EnableTLS is a flag that determines whether or not the proxy will listen for TLS connections
-	EnableTLS option.Bool `json:"enable_tls,omitempty" ts:"type:boolean"`
+	EnableTLS *bool `json:"enable_tls,omitempty" mirror:"type:boolean"`
 
 	// TLSEmail is the email address that will be used to register TLS certificates
-	TLSEmail option.String `json:"tls_email,omitempty" ts:"type:string"`
+	TLSEmail *string `json:"tls_email,omitempty" mirror:"type:string"`
 
 	// EnableHTTPSRedirect is a flag that determines whether or not the proxy will automatically redirect HTTP requests to HTTPS
-	EnableHTTPSRedirect option.Bool `json:"enable_https_redirect,omitempty" ts:"type:boolean"`
+	EnableHTTPSRedirect *bool `json:"enable_https_redirect,omitempty" mirror:"type:boolean"`
 
 	// ConfigPath is the path to the file that the proxy will use to store its configuration - create if not exists or load
-	ConfigPath option.String `json:"config_path,omitempty" ts:"type:string"`
+	ConfigPath *string `json:"config_path,omitempty" mirror:"type:string"`
 
 	// Storage is the type of store that the proxy will use
-	Storage option.Option[Storage] `json:"storage,omitempty" ts:"type:'json' | 'sqlite' | 'memory'"`
+	Storage *Storage `json:"storage,omitempty" mirror:"type:'json' | 'sqlite' | 'memory'"`
 
 	// CNames is a list of CNAMEs associated with the proxy/host running Lito
-	CNames option.Option[[]string] `json:"cnames,omitempty" ts:"type:string[]"`
+	CNames *[]string `json:"cnames,omitempty" mirror:"type:string[]"`
 }
 
 var DefaultProxy = Proxy{
-	Host:                option.StringValue("0.0.0.0"),
-	HTTPPort:            option.IntValue(80),
-	HTTPSPort:           option.IntValue(443),
-	EnableTLS:           option.BoolValue(false),
-	TLSEmail:            option.StringValue(""),
-	EnableHTTPSRedirect: option.BoolValue(false),
-	ConfigPath:          option.StringValue("lito.json"),
-	Storage:             option.Some(StorageMemory),
-	CNames:              option.None[[]string](),
+	Host:                ref.Ref("0.0.0.0"),
+	HTTPPort:            ref.Ref(80),
+	HTTPSPort:           ref.Ref(443),
+	EnableTLS:           ref.Ref(false),
+	TLSEmail:            ref.Ref(""),
+	EnableHTTPSRedirect: ref.Ref(false),
+	ConfigPath:          ref.Ref("lito.json"),
+	Storage:             ref.Ref(StorageMemory),
+	CNames:              ref.Ref([]string{}),
 }

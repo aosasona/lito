@@ -3,15 +3,13 @@ package types
 import (
 	"encoding/json"
 	"sync"
-
-	"go.trulyao.dev/lito/ext/option"
 )
 
 type Config struct {
-	Admin    option.Option[*Admin] `json:"admin,omitempty" ts:"type:Admin"`
-	Services map[string]*Service   `json:"services,omitempty"`
-	Proxy    option.Option[*Proxy] `json:"proxy,omitempty" ts:"type:Proxy"`
-	rmu      sync.RWMutex          `json:"-" ts:"-"`
+	Admin    *Admin              `json:"admin,omitempty" mirror:"type:Admin"`
+	Services map[string]*Service `json:"services,omitempty"`
+	Proxy    *Proxy              `json:"proxy,omitempty" mirror:"type:Proxy"`
+	rmu      sync.RWMutex        `json:"-" mirror:"-"`
 }
 
 func (c *Config) Lock() { c.rmu.Lock() }

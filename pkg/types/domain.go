@@ -12,14 +12,14 @@ const (
 )
 
 type DomainStatusDNS struct {
-	Value             DNSStatus `json:"value" ts:"type:'verified' | 'pending' | 'aborted' | 'failed'"`
+	Value             DNSStatus `json:"value" mirror:"type:'verified' | 'pending' | 'aborted' | 'failed'"`
 	CurrentRetryCount int       `json:"current_retry_count"`
 	LastUpdated       int       `json:"last_updated"`
 }
 
 type DomainStatus struct {
 	// DNS is the DNS status for the domain
-	DNS DomainStatusDNS `json:"dns" ts:"type:DomainStatusDNS"`
+	DNS DomainStatusDNS `json:"dns" mirror:"type:DomainStatusDNS"`
 }
 
 type Domain struct {

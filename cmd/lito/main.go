@@ -6,8 +6,8 @@ import (
 
 	cli "github.com/urfave/cli/v2"
 	"go.trulyao.dev/lito/core"
-	"go.trulyao.dev/lito/ext/option"
 	"go.trulyao.dev/lito/pkg/logger"
+	"go.trulyao.dev/lito/pkg/ref"
 	"go.trulyao.dev/lito/pkg/types"
 )
 
@@ -38,21 +38,21 @@ func run() error {
 	c := core.New(&core.Opts{
 		Debug: debug,
 		Config: &types.Config{
-			Admin: option.Some(&types.Admin{
-				Enabled: option.Some(enableAdmin),
-				Port:    option.IntValue(adminPort),
-				APIKey:  option.StringValue(adminApiKey),
-			}),
-			Proxy: option.Some(&types.Proxy{
-				ConfigPath:          option.StringValue(configPath),
-				Host:                option.StringValue(proxyHost),
-				HTTPPort:            option.IntValue(httpPort),
-				HTTPSPort:           option.IntValue(httpsPort),
-				TLSEmail:            option.StringValue(tlsEmail),
-				EnableTLS:           option.BoolValue(enableTLS),
-				EnableHTTPSRedirect: option.BoolValue(enableHTTPSRedirect),
-				Storage:             option.Some(storageType),
-			}),
+			Admin: &types.Admin{
+				Enabled: ref.Ref(enableAdmin),
+				Port:    ref.Ref(adminPort),
+				APIKey:  ref.Ref(adminApiKey),
+			},
+			Proxy: &types.Proxy{
+				ConfigPath:          ref.Ref(configPath),
+				Host:                ref.Ref(proxyHost),
+				HTTPPort:            ref.Ref(httpPort),
+				HTTPSPort:           ref.Ref(httpsPort),
+				TLSEmail:            ref.Ref(tlsEmail),
+				EnableTLS:           ref.Ref(enableTLS),
+				EnableHTTPSRedirect: ref.Ref(enableHTTPSRedirect),
+				Storage:             ref.Ref(storageType),
+			},
 		},
 		LogHandler: logger.DefaultLogHandler,
 	})

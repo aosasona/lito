@@ -8,11 +8,12 @@ import (
 	"sync"
 	"syscall"
 
+	"golang.org/x/sync/errgroup"
+
 	"go.trulyao.dev/lito/core/api/handlers"
 	"go.trulyao.dev/lito/pkg/logger"
 	"go.trulyao.dev/lito/pkg/storage"
 	"go.trulyao.dev/lito/pkg/types"
-	"golang.org/x/sync/errgroup"
 )
 
 type Core struct {
@@ -48,14 +49,12 @@ func New(opts *Opts) *Core {
 	}
 
 	var storageHandler storage.Storage
-	if !opts.Config.Proxy.IsNone() {
-		if !opts.Config.Proxy.Unwrap(&types.DefaultProxy).Storage.IsNone() {
-			logHandler.Info("loading storage handler", logger.Field("type", opts.Config.Proxy.Unwrap(&types.DefaultProxy).Storage.Unwrap(types.StorageMemory)))
-			storageHandler, _ = storage.New(&storage.Opts{
-				Config:     opts.Config,
-				LogHandler: logHandler,
-			})
-		}
+	if opts.Config.Proxy != nil && opts.Config.Proxy.Storage != nil {
+		logHandler.Info("loading storage handler", logger.Field("type", opts.Config.Proxy.Storage))
+		storageHandler, _ = storage.New(&storage.Opts{
+			Config:     opts.Config,
+			LogHandler: logHandler,
+		})
 	}
 
 	return &Core{
