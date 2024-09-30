@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"go.trulyao.dev/lito/pkg/logger"
+	"go.trulyao.dev/lito/pkg/ref"
 	"go.trulyao.dev/lito/pkg/types"
 )
 
@@ -29,20 +30,20 @@ func New(opts *Opts) (Storage, error) {
 		return nil, fmt.Errorf("config provided in storage.New cannot be nil")
 	}
 
-	if opts.Config.Proxy.IsNone() {
+	if opts.Config.Proxy == nil {
 		return nil, fmt.Errorf("Proxy config is not set, this may be a bug, please investigate")
 	}
 
-	if opts.Config.Proxy.Unwrap(&types.DefaultProxy).Storage.IsNone() {
+	if opts.Config.Proxy.Storage != nil {
 		return nil, fmt.Errorf("Storage config is not set, must be one of: memory, json")
 	}
 
-	switch opts.Config.Proxy.Unwrap(&types.DefaultProxy).Storage.Unwrap(types.StorageMemory) {
+	switch ref.Deref(opts.Config.Proxy.Storage, types.StorageMemory) {
 	case types.StorageJSON:
 		return NewJSONStorage(opts)
 	case types.StorageMemory:
 		return NewMemoryStorage(opts)
 	default:
-		return nil, fmt.Errorf("Unknown storage type: %v", opts.Config.Proxy.Unwrap(&types.DefaultProxy).Storage)
+		return nil, fmt.Errorf("Unknown storage type: %v", opts.Config.Proxy.Storage)
 	}
 }

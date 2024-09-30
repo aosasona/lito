@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"go.trulyao.dev/lito/pkg/logger"
+	"go.trulyao.dev/lito/pkg/ref"
 	"go.trulyao.dev/lito/pkg/types"
 )
 
@@ -34,9 +35,11 @@ func (j *JSON) IsWatchchable() bool { return true }
 
 // We can unwrap here because it is guaranteed that the config is not nil
 func (j *JSON) Path() string {
-	return j.config.
-		Proxy.Unwrap(&types.DefaultProxy).
-		ConfigPath.Unwrap("lito.json")
+	if j.config.Proxy == nil || j.config.Proxy.ConfigPath == nil {
+		return "lito.json"
+	}
+
+	return ref.Deref(j.config.Proxy.ConfigPath, "lito.json")
 }
 
 // Load reads the config from disk and loads it into memory, creating it if it doesn't exist yet

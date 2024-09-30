@@ -6,6 +6,7 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"go.trulyao.dev/lito/pkg/logger"
+	"go.trulyao.dev/lito/pkg/ref"
 	"go.trulyao.dev/lito/pkg/types"
 )
 
@@ -17,17 +18,18 @@ func (c *Core) watchConfig(waitChan chan os.Signal) {
 	}
 	defer watcher.Close()
 
-	if c.config.Proxy.IsNone() {
+	if c.config.Proxy == nil {
 		c.logHandler.Info("no proxy config found, skipping config watcher")
 		return
 	}
 
-	if c.config.Proxy.Unwrap(&types.DefaultProxy).ConfigPath.IsNone() {
+	if ref.Deref(c.config.Proxy, types.DefaultProxy).ConfigPath == nil {
 		c.logHandler.Info("no config path found, skipping config watcher")
 		return
 	}
 
-	path := c.config.Proxy.Unwrap(&types.DefaultProxy).ConfigPath.Unwrap("config.json")
+	// NOTE: We have checked that the config path is not nil, so we can safely dereference it here
+	path := ref.Deref(c.config.Proxy.ConfigPath, "config.json")
 
 	go func() {
 		for {

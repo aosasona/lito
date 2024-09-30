@@ -4,14 +4,14 @@ import (
 	"reflect"
 	"testing"
 
-	"go.trulyao.dev/lito/ext/option"
+	"go.trulyao.dev/lito/pkg/ref"
 	"go.trulyao.dev/lito/pkg/types"
 )
 
 var (
-	String = option.StringValue
-	Int    = option.IntValue
-	Bool   = option.BoolValue
+	String = ref.Ref[string]
+	Int    = ref.Ref[int]
+	Bool   = ref.Ref[bool]
 )
 
 var (
@@ -61,12 +61,12 @@ var (
 
 	jsonOpts = &Opts{
 		Config: &types.Config{
-			Admin: option.Some(&types.Admin{
+			Admin: &types.Admin{
 				Enabled: Bool(true),
 				Port:    Int(9090),
 				APIKey:  String("1234567890abcdefghij"),
-			}),
-			Proxy: option.Some(&types.Proxy{
+			},
+			Proxy: &types.Proxy{
 				Host:                String("0.0.0.0"),
 				HTTPPort:            Int(80),
 				HTTPSPort:           Int(443),
@@ -74,14 +74,14 @@ var (
 				TLSEmail:            String("someone@example.com"),
 				EnableHTTPSRedirect: Bool(true),
 				ConfigPath:          String(mockConfigPath),
-				Storage:             option.Some(types.StorageJSON),
-				CNames:              option.Some([]string{"example.com"}),
-			}),
+				Storage:             ref.Ref(types.StorageJSON),
+				CNames:              ref.Ref([]string{"example.com"}),
+			},
 			Services: map[string]*types.Service{
 				"demo": {
-					TargetHost: option.StringValue("demo.com"),
-					TargetPort: option.IntValue(80),
-					EnableTLS:  option.BoolValue(false),
+					TargetHost: String("demo.com"),
+					TargetPort: Int(80),
+					EnableTLS:  Bool(false),
 					Domains: []types.Domain{
 						{
 							DomainName: "sub.demo.com",
@@ -143,7 +143,7 @@ func Test_Load(t *testing.T) {
 		t.Errorf("failed to init on disk: %v", err)
 	}
 
-	j, err := NewJSONStorage(&Opts{Config: &types.Config{Proxy: option.Some(&types.Proxy{ConfigPath: String(mockConfigPath)})}})
+	j, err := NewJSONStorage(&Opts{Config: &types.Config{Proxy: &types.Proxy{ConfigPath: String(mockConfigPath)}}})
 	if err != nil {
 		t.Fatalf("failed to create JSON storage: %v", err)
 	}
@@ -182,9 +182,12 @@ func Test_Persist(t *testing.T) {
 
 	// simulate updating data
 	opts := jsonOpts
-	opts.Config.Admin.Unwrap(&types.DefaultAdmin).Port = Int(21000)
-	opts.Config.Proxy.Unwrap(&types.DefaultProxy).EnableTLS = Bool(false)
-	opts.Config.Proxy.Unwrap(&types.DefaultProxy).TLSEmail = String("john@doe.com")
+	if opts.Config.Admin == nil {
+		opts.Config.Admin = &types.DefaultAdmin
+	}
+	opts.Config.Admin.Port = Int(21000)
+	opts.Config.Proxy.EnableTLS = Bool(false)
+	opts.Config.Proxy.TLSEmail = String("john@doe.com")
 	if s, ok := opts.Config.Services["demo"]; ok {
 		s.TargetPort = Int(5000)
 	}
@@ -250,13 +253,17 @@ func Test_Full(t *testing.T) {
 		t.Errorf("failed to load from disk: %v", err)
 	}
 
+	if opts.Config.Admin == nil {
+		opts.Config.Admin = &types.DefaultAdmin
+	}
+
 	// Concurrently update and persist data a couple of times to simulate a real world scenario (e.g. updating config via API)
 	// Previous versions had a bug where the config file would completely be blank on persist; main reason for this test and rewrite
 	for i := 0; i < 10; i++ {
 		go func() {
-			opts.Config.Admin.Unwrap(&types.DefaultAdmin).Port = Int(opts.Config.Admin.Unwrap(&types.DefaultAdmin).Port.Unwrap(0) + 100)
-			opts.Config.Proxy.Unwrap(&types.DefaultProxy).EnableTLS = Bool(!opts.Config.Proxy.Unwrap(&types.DefaultProxy).EnableTLS.Unwrap(false))
-			opts.Config.Proxy.Unwrap(&types.DefaultProxy).HTTPPort = Int(opts.Config.Proxy.Unwrap(&types.DefaultProxy).HTTPPort.Unwrap(0) + 1000)
+			opts.Config.Admin.Port = Int(ref.Deref(opts.Config.Admin.Port, 0) + 100)
+			opts.Config.Proxy.EnableTLS = Bool(!ref.Deref(ref.Deref(opts.Config.Proxy, types.DefaultProxy).EnableTLS, false))
+			opts.Config.Proxy.HTTPPort = Int(ref.Deref(ref.Deref(opts.Config.Proxy, types.DefaultProxy).HTTPPort, 0) + 1000)
 			err := j.Persist()
 			if err != nil {
 				t.Errorf("failed to persist: %v", err)

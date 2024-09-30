@@ -3,7 +3,7 @@ package types
 import (
 	"testing"
 
-	"go.trulyao.dev/lito/ext/option"
+	"go.trulyao.dev/lito/pkg/ref"
 )
 
 func Test_GetHostName(t *testing.T) {
@@ -20,33 +20,33 @@ func Test_GetHostName(t *testing.T) {
 		{
 			name: "service with scheme",
 			service: &Service{
-				TargetHost: option.StringValue("http://example.com"),
+				TargetHost: ref.Ref("http://example.com"),
 			},
 			want: "http://example.com",
 		},
 		{
 			name: "service with scheme and port",
 			service: &Service{
-				TargetHost: option.StringValue("https://example.com"),
-				TargetPort: option.IntValue(8080),
+				TargetHost: ref.Ref("https://example.com"),
+				TargetPort: ref.Ref(8080),
 			},
 			want: "https://example.com:8080",
 		},
 		{
 			name: "service with scheme, port, and path",
 			service: &Service{
-				TargetHost: option.StringValue("https://example.com"),
-				TargetPort: option.IntValue(8080),
-				TargetPath: option.StringValue("/some/path"),
+				TargetHost: ref.Ref("https://example.com"),
+				TargetPort: ref.Ref(8080),
+				TargetPath: ref.Ref("/some/path"),
 			},
 			want: "https://example.com:8080/some/path",
 		},
 		{
 			name: "service with scheme, port, and path with leading slash and trailing slash in host",
 			service: &Service{
-				TargetHost: option.StringValue("https://example.com/"),
-				TargetPort: option.IntValue(8080),
-				TargetPath: option.StringValue("/some/path"),
+				TargetHost: ref.Ref("https://example.com/"),
+				TargetPort: ref.Ref(8080),
+				TargetPath: ref.Ref("/some/path"),
 			},
 			want: "https://example.com:8080/some/path",
 		},

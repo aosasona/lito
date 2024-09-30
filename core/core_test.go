@@ -1,14 +1,14 @@
 package core
 
 import (
-	"go.trulyao.dev/lito/ext/option"
+	"go.trulyao.dev/lito/pkg/ref"
 	"go.trulyao.dev/lito/pkg/types"
 )
 
 var (
-	String = option.StringValue
-	Int    = option.IntValue
-	Bool   = option.BoolValue
+	String = ref.Ref[string]
+	Int    = ref.Ref[int]
+	Bool   = ref.Ref[bool]
 )
 
 func mockConfig(configPath ...string) types.Config {
@@ -18,12 +18,12 @@ func mockConfig(configPath ...string) types.Config {
 	}
 
 	return types.Config{
-		Admin: option.Some(&types.Admin{
+		Admin: &types.Admin{
 			Enabled: Bool(true),
 			Port:    Int(9090),
 			APIKey:  String("1234567890abcdefghij"),
-		}),
-		Proxy: option.Some(&types.Proxy{
+		},
+		Proxy: &types.Proxy{
 			Host:                String("0.0.0.0"),
 			HTTPPort:            Int(80),
 			HTTPSPort:           Int(443),
@@ -31,9 +31,9 @@ func mockConfig(configPath ...string) types.Config {
 			TLSEmail:            String("someone@example.com"),
 			EnableHTTPSRedirect: Bool(true),
 			ConfigPath:          String(mockConfigPath),
-			Storage:             option.Some(types.StorageJSON),
-			CNames:              option.Some([]string{"example.com"}),
-		}),
+			Storage:             ref.Ref(types.StorageJSON),
+			CNames:              ref.Ref([]string{"example.com"}),
+		},
 		Services: map[string]*types.Service{
 			"demo": {
 				TargetHost: String("https://something.dp.com"),

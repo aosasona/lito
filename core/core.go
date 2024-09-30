@@ -12,6 +12,7 @@ import (
 
 	"go.trulyao.dev/lito/core/api/handlers"
 	"go.trulyao.dev/lito/pkg/logger"
+	"go.trulyao.dev/lito/pkg/ref"
 	"go.trulyao.dev/lito/pkg/storage"
 	"go.trulyao.dev/lito/pkg/types"
 )
@@ -86,8 +87,9 @@ func (c *Core) HandleShutdown(sig chan os.Signal) {
 }
 
 func (c *Core) performSanityCheck() error {
-	if c.config.Proxy.IsSome() {
-		if c.config.Proxy.DangerouslyUnwrap().EnableTLS.Unwrap(false) && c.config.Proxy.DangerouslyUnwrap().TLSEmail.Unwrap("") == "" {
+	if c.config.Proxy != nil {
+		if ref.Deref(c.config.Proxy.EnableTLS, false) &&
+			ref.Deref(c.config.Proxy.TLSEmail, "") == "" {
 			return errors.New("TLS email is not set but TLS is enabled!")
 		}
 	}
@@ -113,11 +115,14 @@ func (c *Core) Run() error {
 	eg := errgroup.Group{}
 
 	eg.Go(func() error {
-		if c.config.Proxy.IsNone() {
+		if c.config.Proxy == nil {
 			return errors.New("no proxy config present")
 		}
 
-		c.logHandler.Info("starting proxy server", logger.Field("port", c.config.Proxy.Unwrap(&types.DefaultProxy).HTTPPort.Unwrap(80)))
+		c.logHandler.Info(
+			"starting proxy server",
+			logger.Field("port", ref.Deref(c.config.Proxy.HTTPPort, 80)),
+		)
 		if err := c.startProxy(); err != nil {
 			if errors.Is(http.ErrServerClosed, err) {
 				return nil
@@ -129,10 +134,7 @@ func (c *Core) Run() error {
 		return nil
 	})
 
-	adminApiEnabled := c.config.Admin.IsSome() &&
-		c.config.Admin.Unwrap(&types.DefaultAdmin).Enabled.IsSome() &&
-		c.config.Admin.Unwrap(&types.DefaultAdmin).Enabled.Unwrap(false) == true
-
+	adminApiEnabled := c.config.Admin != nil && ref.Deref(c.config.Admin.Enabled, false) == true
 	if !adminApiEnabled && c.storageHandler.IsWatchchable() {
 		eg.Go(func() error {
 			c.watchConfig(sig)

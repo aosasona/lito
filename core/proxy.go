@@ -1,6 +1,7 @@
 package core
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -8,8 +9,8 @@ import (
 	"net/url"
 	"strings"
 
-	"go.trulyao.dev/lito/ext/option"
 	"go.trulyao.dev/lito/pkg/logger"
+	"go.trulyao.dev/lito/pkg/ref"
 	"go.trulyao.dev/lito/pkg/types"
 )
 
@@ -17,7 +18,7 @@ var proxyHttpServer *http.Server
 
 // TODO: drop certmagic in here to use tls if turned on
 func (c *Core) startProxy() error {
-	if c.config.Proxy.IsNone() {
+	if c.config.Proxy == nil {
 		return errors.New("no proxy config present")
 	}
 
@@ -25,7 +26,7 @@ func (c *Core) startProxy() error {
 		Director: c.proxyDirector,
 	}
 
-	httpPort := c.config.Proxy.Unwrap(&types.DefaultProxy).HTTPPort.Unwrap(80)
+	httpPort := ref.Deref(c.config.Proxy.HTTPPort, 80)
 	proxyHttpServer = &http.Server{
 		Addr:    fmt.Sprintf(":%d", httpPort),
 		Handler: reverseProxy,
@@ -35,23 +36,22 @@ func (c *Core) startProxy() error {
 }
 
 func (c *Core) stopProxy() error {
-	return proxyHttpServer.Shutdown(nil)
+	return proxyHttpServer.Shutdown(context.TODO())
 }
 
 func (c *Core) proxyDirector(req *http.Request) {
 	req.Header.Del("X-Forwarded-For")
 
-	serviceName, optService, ok := c.findServiceByDomainName(req.Host)
-	if !ok {
+	serviceName, service, ok := c.findServiceByDomainName(req.Host)
+	// Technically, the nil check for the service here is unnecessary, as the service should always be present is ok is true but it's here for safety
+	if !ok || service == nil {
 		if c.debug {
 			c.logHandler.Debug("no service found for domain", logger.Field("domain", req.Host))
 		}
 		return
 	}
 
-	targetService := optService.Unwrap(&types.DefaultService)
-
-	targetURL, err := url.Parse(targetService.GetTargetHost())
+	targetURL, err := url.Parse(service.GetTargetHost())
 	if err != nil {
 		return
 	}
@@ -69,7 +69,7 @@ func (c *Core) proxyDirector(req *http.Request) {
 	}
 
 	// Strip all headers that are specified in the service
-	for _, header := range targetService.StripHeaders.Unwrap([]string{}) {
+	for _, header := range ref.Deref(service.StripHeaders, []string{}) {
 		req.Header.Del(header)
 	}
 
@@ -89,24 +89,21 @@ func (c *Core) proxyDirector(req *http.Request) {
 }
 
 // findServiceByName finds a service by its name
-func (c *Core) findServiceByName(name string) (option.Option[*types.Service], bool) {
+func (c *Core) findServiceByName(name string) (*types.Service, bool) {
 	service, ok := c.config.Services[name]
-	if !ok {
-		return option.None[*types.Service](), false
-	}
-	return option.Some(service), true
+	return service, ok
 }
 
 // findServiceByHostname finds a service by the domain the request is issued to
-func (c *Core) findServiceByDomainName(domainName string) (string, option.Option[*types.Service], bool) {
+func (c *Core) findServiceByDomainName(domainName string) (string, *types.Service, bool) {
 	for name, service := range c.config.Services {
 		for _, serviceHost := range service.Domains {
 			if serviceHost.DomainName == domainName {
-				return name, option.Some(service), true
+				return name, service, true
 			}
 		}
 	}
-	return "", option.None[*types.Service](), false
+	return "", &types.Service{}, false
 }
 
 // Source: net/http/httputil/reverseproxy.go
