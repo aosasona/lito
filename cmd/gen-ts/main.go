@@ -1,30 +1,37 @@
 package main
 
 import (
-	gots "github.com/aosasona/gots/v2"
-	"github.com/aosasona/gots/v2/config"
 	"go.trulyao.dev/lito/pkg/types"
+	"go.trulyao.dev/mirror/v2"
+	"go.trulyao.dev/mirror/v2/config"
+	"go.trulyao.dev/mirror/v2/generator/typescript"
 )
 
 // TODO: define API routes in a separate file as "<path>": "<request-payload-type>"
 func main() {
-	g := gots.Init(config.Config{
-		Enabled:           gots.Bool(true),
-		OutputFile:        gots.String("ext/typescript/types.ts"),
-		UseTypeForObjects: gots.Bool(true),
-		ExpandObjectTypes: gots.Bool(false),
+	m := mirror.New(config.Config{
+		Enabled:              true,
+		EnableParserCache:    true,
+		FlattenEmbeddedTypes: true,
 	})
 
-	g.AddSource(types.Proxy{})
-	g.AddSource(types.Admin{})
-	g.AddSource(types.DomainStatusDNS{})
-	g.AddSource(types.DomainStatus{})
-	g.AddSource(types.Domain{})
-	g.AddSource(types.Service{})
+	m.AddSources(
+		types.Proxy{},
+		types.Admin{},
+		types.DomainStatusDNS{},
+		types.DomainStatus{},
+		types.Domain{},
+		types.Service{},
+		types.Config{},
+	)
 
-	g.AddSource(types.Config{})
+	target := typescript.DefaultConfig().
+		SetFileName("types.ts").
+		SetOutputPath("generated/typescript")
 
-	if err := g.Execute(); err != nil {
+	m.AddTarget(target)
+
+	if err := m.GenerateAndSaveAll(); err != nil {
 		panic(err)
 	}
 }
