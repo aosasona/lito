@@ -53,6 +53,15 @@ type (
 )
 
 func Field(key string, value any) Param {
+	if value == nil {
+		value = ""
+	}
+
+	// If it is an error, we want to extract the error message
+	if err, ok := value.(error); ok {
+		value = err.Error()
+	}
+
 	return Param{
 		Key:   key,
 		Value: value,

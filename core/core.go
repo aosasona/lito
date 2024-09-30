@@ -2,10 +2,10 @@ package core
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 
 	"golang.org/x/sync/errgroup"
@@ -23,7 +23,6 @@ type Core struct {
 	storageHandler storage.Storage
 	logHandler     logger.Logger
 	errorHandler   types.ErrorHandler
-	mutex          sync.Mutex
 }
 
 type Opts struct {
@@ -49,13 +48,17 @@ func New(opts *Opts) *Core {
 		logHandler = opts.LogHandler
 	}
 
-	var storageHandler storage.Storage
+	var (
+		storageHandler storage.Storage
+		err            error
+	)
 	if opts.Config.Proxy != nil && opts.Config.Proxy.Storage != nil {
 		logHandler.Info("loading storage handler", logger.Field("type", opts.Config.Proxy.Storage))
-		storageHandler, _ = storage.New(&storage.Opts{
-			Config:     opts.Config,
-			LogHandler: logHandler,
-		})
+
+		if storageHandler, err = storage.New(&storage.Opts{Config: opts.Config, LogHandler: logHandler}); err != nil {
+			logHandler.Error("failed to load storage handler", logger.Field("error", err))
+			os.Exit(1)
+		}
 	}
 
 	return &Core{
@@ -74,7 +77,7 @@ func (c *Core) HandleShutdown(sig chan os.Signal) {
 	<-sig
 
 	c.logHandler.Info("shutting down proxy")
-	c.stopProxy()
+	_ = c.stopProxy()
 	c.logHandler.Info("proxy shutdown complete")
 
 	if err := c.storageHandler.Persist(); err != nil {
@@ -98,6 +101,9 @@ func (c *Core) performSanityCheck() error {
 }
 
 func (c *Core) Run() error {
+	// Sanity check
+	c.ensureAllFielsdSet()
+
 	sig := make(chan os.Signal, 1)
 	go func() {
 		c.HandleShutdown(sig)
@@ -124,7 +130,7 @@ func (c *Core) Run() error {
 			logger.Field("port", ref.Deref(c.config.Proxy.HTTPPort, 80)),
 		)
 		if err := c.startProxy(); err != nil {
-			if errors.Is(http.ErrServerClosed, err) {
+			if errors.Is(err, http.ErrServerClosed) {
 				return nil
 			}
 
@@ -134,8 +140,8 @@ func (c *Core) Run() error {
 		return nil
 	})
 
-	adminApiEnabled := c.config.Admin != nil && ref.Deref(c.config.Admin.Enabled, false) == true
-	if !adminApiEnabled && c.storageHandler.IsWatchchable() {
+	adminAPIEnabled := c.config.Admin != nil && ref.Deref(c.config.Admin.Enabled, false)
+	if !adminAPIEnabled && c.storageHandler.IsWatchchable() {
 		eg.Go(func() error {
 			c.watchConfig(sig)
 			return nil
@@ -150,4 +156,28 @@ func (c *Core) Run() error {
 	}
 
 	return nil
+}
+
+func (c *Core) ensureAllFielsdSet() {
+	var err error
+	if c.config == nil {
+		log.Fatal("config cannot be nil")
+		return
+	}
+
+	if c.logHandler == nil {
+		c.logHandler = logger.DefaultLogHandler
+	}
+
+	if c.errorHandler == nil {
+		c.errorHandler = handlers.ErrorHandler
+	}
+
+	if c.storageHandler == nil {
+		c.logHandler.Warn("no storage handler set, using memory storage")
+		if c.storageHandler, err = storage.NewMemoryStorage(&storage.Opts{Config: c.config, LogHandler: c.logHandler}); err != nil {
+			c.logHandler.Error("failed to load storage handler", logger.Field("error", err))
+			os.Exit(1)
+		}
+	}
 }

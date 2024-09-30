@@ -31,11 +31,13 @@ func New(opts *Opts) (Storage, error) {
 	}
 
 	if opts.Config.Proxy == nil {
-		return nil, fmt.Errorf("Proxy config is not set, this may be a bug, please investigate")
+		return nil, fmt.Errorf(
+			"proxy config is not set, this might be a bug, please investigate and/or report",
+		)
 	}
 
-	if opts.Config.Proxy.Storage != nil {
-		return nil, fmt.Errorf("Storage config is not set, must be one of: memory, json")
+	if opts.Config.Proxy.Storage == nil {
+		return nil, fmt.Errorf("storage config is not set, must be one of: memory, json")
 	}
 
 	switch ref.Deref(opts.Config.Proxy.Storage, types.StorageMemory) {
