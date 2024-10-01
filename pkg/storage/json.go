@@ -77,7 +77,7 @@ func (j *JSON) Persist() error {
 
 	var file *os.File
 
-	if file, err = os.OpenFile(j.Path(), os.O_WRONLY|os.O_TRUNC, 0644); err != nil {
+	if file, err = os.OpenFile(j.Path(), os.O_WRONLY|os.O_TRUNC, 0o644); err != nil {
 		return fmt.Errorf("failed to open config file: %s", err.Error())
 	}
 
@@ -112,7 +112,7 @@ func (j *JSON) init() error {
 	j.config.Lock()
 	defer j.config.Unlock()
 
-	err := os.MkdirAll(filepath.Dir(j.Path()), 0755)
+	err := os.MkdirAll(filepath.Dir(j.Path()), 0o755)
 	if err != nil {
 		return err
 	}
@@ -151,7 +151,10 @@ func (j *JSON) exists() bool {
 func (j *JSON) isEmpty() bool {
 	fileInfo, err := os.Stat(j.Path())
 	if err != nil {
-		j.debug("failed to open config file, this might be a bug, check the error details to confirm", logger.Param{Key: "error", Value: err.Error()})
+		j.debug(
+			"failed to open config file, this might be a bug, check the error details to confirm",
+			logger.Param{Key: "error", Value: err.Error()},
+		)
 		return true
 	}
 

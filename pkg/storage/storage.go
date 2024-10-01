@@ -49,3 +49,9 @@ func New(opts *Opts) (Storage, error) {
 		return nil, fmt.Errorf("Unknown storage type: %v", opts.Config.Proxy.Storage)
 	}
 }
+
+var (
+	_ Storage = (*JSON)(nil)
+	// _ Storage = (*TOML)(nil)
+	_ Storage = (*Memory)(nil)
+)
