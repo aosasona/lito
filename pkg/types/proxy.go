@@ -9,6 +9,7 @@ type Storage string
 const (
 	StorageMemory Storage = "memory"
 	StorageJSON   Storage = "json"
+	StorageTOML   Storage = "toml"
 )
 
 type Proxy struct {

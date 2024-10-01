@@ -52,6 +52,6 @@ func New(opts *Opts) (Storage, error) {
 
 var (
 	_ Storage = (*JSON)(nil)
-	// _ Storage = (*TOML)(nil)
+	_ Storage = (*TOML)(nil)
 	_ Storage = (*Memory)(nil)
 )
