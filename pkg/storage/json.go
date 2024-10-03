@@ -66,10 +66,8 @@ func (j *JSON) CreateIfNotExists(optPath ...string) error {
 
 // Load reads the config from disk and loads it into memory, creating it if it doesn't exist yet
 func (j *JSON) Load() error {
-	if !j.exists() || j.isEmpty() {
-		if err := j.init(); err != nil {
-			return err
-		}
+	if err := j.CreateIfNotExists(); err != nil {
+		return err
 	}
 
 	j.config.Lock()
@@ -81,7 +79,6 @@ func (j *JSON) Load() error {
 	}
 
 	j.config.Update(config)
-
 	j.debug("successfully loaded config from disk")
 
 	return nil
@@ -97,64 +94,45 @@ func (j *JSON) Persist() error {
 		return fmt.Errorf("failed to convert config to JSON: %s", err.Error())
 	}
 
-	var file *os.File
-
-	if file, err = os.OpenFile(j.Path(), os.O_WRONLY|os.O_TRUNC, 0o644); err != nil {
-		return fmt.Errorf("failed to open config file: %s", err.Error())
-	}
-
-	if _, err = file.Write(configBytes); err != nil {
+	if err = os.WriteFile(j.Path(), configBytes, os.ModePerm); err != nil {
 		return fmt.Errorf("failed to write config to disk: %s", err.Error())
 	}
 
-	j.debug("successfully persisted config to disk")
-
+	j.debug("successfully persisted config to disk", logger.Param{Key: "path", Value: j.Path()})
 	return nil
 }
 
 func (j *JSON) read() (*types.Config, error) {
 	configBytes, err := os.ReadFile(j.Path())
 	if err != nil {
-		return nil, err
+		return &types.Config{}, err
 	}
 
 	config := new(types.Config)
 	err = json.Unmarshal(configBytes, config)
 	if err != nil {
-		return nil, err
+		return &types.Config{}, err
 	}
 
 	return config, nil
 }
 
 // init() creates the config file on disk using the current config in memory
-//
-// This function should only be used when the config file doesn't exist yet or is empty (e.g. on first run)
 func (j *JSON) init() error {
 	j.config.Lock()
 	defer j.config.Unlock()
 
-	err := os.MkdirAll(filepath.Dir(j.Path()), 0o755)
-	if err != nil {
+	if err := os.MkdirAll(filepath.Dir(j.Path()), os.ModePerm); err != nil {
 		return err
 	}
 
-	if _, err := os.Stat(j.Path()); os.IsNotExist(err) {
-		file, err := os.Create(j.Path())
-		if err != nil {
-			return err
-		}
-		defer file.Close()
+	configBytes, err := j.config.ToJSON()
+	if err != nil {
+		return fmt.Errorf("failed to convert config to JSON: %w", err)
+	}
 
-		configBytes, err := j.config.ToJSON()
-		if err != nil {
-			return fmt.Errorf("failed to convert config to JSON: %w", err)
-		}
-
-		_, err = file.Write(configBytes)
-		if err != nil {
-			return err
-		}
+	if err = os.WriteFile(j.Path(), configBytes, os.ModePerm); err != nil {
+		return err
 	}
 
 	return nil
