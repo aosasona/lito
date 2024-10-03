@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"go.trulyao.dev/lito/pkg/logger"
 	"go.trulyao.dev/lito/pkg/ref"
@@ -33,13 +34,34 @@ func NewJSONStorage(opts *Opts) (*JSON, error) {
 
 func (j *JSON) IsWatchchable() bool { return true }
 
-// We can unwrap here because it is guaranteed that the config is not nil
+// Get the path or set the default path and return that
 func (j *JSON) Path() string {
-	if j.config.Proxy == nil || j.config.Proxy.ConfigPath == nil {
-		return "lito.json"
+	if j.config.Proxy == nil {
+		j.config.Proxy = &types.DefaultProxy
+		j.config.Proxy.ConfigPath = ref.Ref("lito.json")
 	}
 
 	return ref.Deref(j.config.Proxy.ConfigPath, "lito.json")
+}
+
+// Create the JSON config if it doesn't already exist
+func (j *JSON) CreateIfNotExists(optPath ...string) error {
+	// If an alternative path is provided use, that as our new config path and create the config if it doesn't already exist
+	if len(optPath) > 0 && strings.TrimSpace(optPath[0]) != "" {
+		if j.config.Proxy == nil {
+			j.config.Proxy = &types.DefaultProxy
+		}
+
+		j.config.Proxy.ConfigPath = ref.Ref(optPath[0])
+	}
+
+	if !j.exists() || j.isEmpty() {
+		if err := j.init(); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // Load reads the config from disk and loads it into memory, creating it if it doesn't exist yet
@@ -70,7 +92,7 @@ func (j *JSON) Persist() error {
 	j.config.RLock()
 	defer j.config.RUnlock()
 
-	configBytes, err := j.config.ToJson()
+	configBytes, err := j.config.ToJSON()
 	if err != nil {
 		return fmt.Errorf("failed to convert config to JSON: %s", err.Error())
 	}
@@ -124,7 +146,7 @@ func (j *JSON) init() error {
 		}
 		defer file.Close()
 
-		configBytes, err := j.config.ToJson()
+		configBytes, err := j.config.ToJSON()
 		if err != nil {
 			return fmt.Errorf("failed to convert config to JSON: %w", err)
 		}
@@ -138,7 +160,6 @@ func (j *JSON) init() error {
 	return nil
 }
 
-// remove() deletes the config file on disk
 func (j *JSON) remove() error {
 	return os.Remove(j.Path())
 }

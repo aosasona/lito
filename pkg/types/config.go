@@ -36,7 +36,7 @@ func (c *Config) Update(config *Config) {
 
 // String converts the config to a JSON string - should only be used for debugging, handle errors properly when persisting
 func (c *Config) String() string {
-	b, err := c.ToJson()
+	b, err := c.ToJSON()
 	if err != nil {
 		return ""
 	}
@@ -44,7 +44,7 @@ func (c *Config) String() string {
 	return string(b)
 }
 
-// ToJson converts the config to a JSON byte array
-func (c *Config) ToJson() ([]byte, error) {
+// ToJSON converts the config to a JSON byte array
+func (c *Config) ToJSON() ([]byte, error) {
 	return json.MarshalIndent(c, "", "  ")
 }

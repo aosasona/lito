@@ -9,10 +9,20 @@ import (
 )
 
 type Storage interface {
+	// Get the config's path or initialize it if empty
 	Path() string
+
+	// Load the configuration from the appropriate source
 	Load() error
+
+	// Save the config back back to the appropriate destination; usually the disk
 	Persist() error
+
+	// Whether a storage type is watchable or not
 	IsWatchchable() bool
+
+	// Create the configuration file if required, this method should be safe to call multiple times
+	CreateIfNotExists(...string) error
 }
 
 type Opts struct {
@@ -45,6 +55,8 @@ func New(opts *Opts) (Storage, error) {
 		return NewJSONStorage(opts)
 	case types.StorageMemory:
 		return NewMemoryStorage(opts)
+	case types.StorageTOML:
+		return NewTOMLStorage(opts)
 	default:
 		return nil, fmt.Errorf("Unknown storage type: %v", opts.Config.Proxy.Storage)
 	}

@@ -34,7 +34,16 @@ func (m *Memory) Path() string { return ":memory:" }
 func (m *Memory) Load() error { return nil }
 
 func (m *Memory) Persist() error {
-	m.warn("Storage is set to memory, skipping config persistence - this is NOT recommended for production use")
+	m.warn(
+		"Storage is set to memory, skipping config persistence - this is NOT recommended for production use",
+	)
+	return nil
+}
+
+func (m *Memory) CreateIfNotExists(_ ...string) error {
+	m.warn(
+		"Storage is set to memory, skipping config initialization - this is NOT recommended for production use",
+	)
 	return nil
 }
 

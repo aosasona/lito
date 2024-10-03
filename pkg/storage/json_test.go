@@ -117,7 +117,7 @@ func Test_InitOnDisk(t *testing.T) {
 		t.Errorf("failed to read from disk: %v", err)
 	}
 
-	dcStr, err := diskContent.ToJson()
+	dcStr, err := diskContent.ToJSON()
 	if err != nil {
 		t.Errorf("failed to convert disk content to string: %v", err)
 	}
@@ -143,7 +143,9 @@ func Test_Load(t *testing.T) {
 		t.Errorf("failed to init on disk: %v", err)
 	}
 
-	j, err := NewJSONStorage(&Opts{Config: &types.Config{Proxy: &types.Proxy{ConfigPath: String(mockConfigPath)}}})
+	j, err := NewJSONStorage(
+		&Opts{Config: &types.Config{Proxy: &types.Proxy{ConfigPath: String(mockConfigPath)}}},
+	)
 	if err != nil {
 		t.Fatalf("failed to create JSON storage: %v", err)
 	}
@@ -160,13 +162,17 @@ func Test_Load(t *testing.T) {
 		t.Errorf("failed to load from disk: %v", err)
 	}
 
-	memContentBytes, err := j.config.ToJson()
+	memContentBytes, err := j.config.ToJSON()
 	if err != nil {
 		t.Errorf("failed to convert config to JSON bytes: %v", err)
 	}
 
 	if !reflect.DeepEqual(memContentBytes, mockConfigBytes) {
-		t.Errorf("expected config to be %v, got %v", string(mockConfigBytes), string(memContentBytes))
+		t.Errorf(
+			"expected config to be %v, got %v",
+			string(mockConfigBytes),
+			string(memContentBytes),
+		)
 	}
 }
 
@@ -216,12 +222,12 @@ func Test_Persist(t *testing.T) {
 		t.Errorf("failed to read from disk: %v", err)
 	}
 
-	dcStr, err := diskContent.ToJson()
+	dcStr, err := diskContent.ToJSON()
 	if err != nil {
 		t.Errorf("failed to convert disk content to string: %v", err)
 	}
 
-	optsBytes, err := opts.Config.ToJson()
+	optsBytes, err := opts.Config.ToJSON()
 	if err != nil {
 		t.Errorf("failed to convert opts to JSON bytes: %v", err)
 	}
@@ -262,8 +268,12 @@ func Test_Full(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		go func() {
 			opts.Config.Admin.Port = Int(ref.Deref(opts.Config.Admin.Port, 0) + 100)
-			opts.Config.Proxy.EnableTLS = Bool(!ref.Deref(ref.Deref(opts.Config.Proxy, types.DefaultProxy).EnableTLS, false))
-			opts.Config.Proxy.HTTPPort = Int(ref.Deref(ref.Deref(opts.Config.Proxy, types.DefaultProxy).HTTPPort, 0) + 1000)
+			opts.Config.Proxy.EnableTLS = Bool(
+				!ref.Deref(ref.Deref(opts.Config.Proxy, types.DefaultProxy).EnableTLS, false),
+			)
+			opts.Config.Proxy.HTTPPort = Int(
+				ref.Deref(ref.Deref(opts.Config.Proxy, types.DefaultProxy).HTTPPort, 0) + 1000,
+			)
 			err := j.Persist()
 			if err != nil {
 				t.Errorf("failed to persist: %v", err)
@@ -279,12 +289,12 @@ func Test_Full(t *testing.T) {
 	}
 
 	// Compare
-	memContentBytes, err := j.config.ToJson()
+	memContentBytes, err := j.config.ToJSON()
 	if err != nil {
 		t.Errorf("failed to convert config to JSON bytes: %v", err)
 	}
 
-	optsBytes, err := opts.Config.ToJson()
+	optsBytes, err := opts.Config.ToJSON()
 	if err != nil {
 		t.Errorf("failed to convert opts to JSON bytes: %v", err)
 	}
