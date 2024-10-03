@@ -42,7 +42,7 @@ var runFlags = []cli.Flag{
 		Name:    "config",
 		Aliases: []string{"c"},
 		Usage:   "The path to the config file",
-		Value:   "lito.json",
+		Value:   "lito.toml",
 	},
 	&cli.StringFlag{
 		Name:    "host",
@@ -78,11 +78,10 @@ var runFlags = []cli.Flag{
 		Usage:   "Enable HTTP to HTTPS redirects",
 		Value:   true,
 	},
-	// TODO: use TOML as the default config format
 	&cli.StringFlag{
 		Name:  "storage",
 		Usage: "The storage backend to use",
-		Value: "json",
+		Value: "toml",
 	},
 }
 
