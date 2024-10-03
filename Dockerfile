@@ -32,4 +32,8 @@ RUN echo $'{\
   }\
 }' > lito.json
 
-CMD ["/app"]
+EXPOSE 80 443
+
+ENTRYPOINT ["/app"]
+
+CMD ["run"]
