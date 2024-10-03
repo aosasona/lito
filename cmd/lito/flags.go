@@ -11,7 +11,7 @@ var (
 
 	enableAdmin = false
 	adminPort   = 0
-	adminApiKey = ""
+	adminAPIKey = ""
 	configPath  = ""
 
 	proxyHost           = ""
@@ -23,7 +23,7 @@ var (
 	storageType         = types.StorageMemory
 )
 
-var flags = []cli.Flag{
+var runFlags = []cli.Flag{
 	&cli.BoolFlag{
 		Name:        "debug",
 		Aliases:     []string{"d"},
@@ -48,8 +48,9 @@ var flags = []cli.Flag{
 		Name:        "admin-key",
 		Usage:       `The API key that will be used to authenticate with the admin API. If not specified, a random one will be generated.`,
 		Value:       "",
-		Destination: &adminApiKey,
+		Destination: &adminAPIKey,
 	},
+	// TODO: make this log-dir when rolling logs is implemented
 	&cli.StringFlag{
 		Name:        "log-file",
 		Aliases:     []string{"l"},
@@ -104,6 +105,7 @@ var flags = []cli.Flag{
 		Value:       true,
 		Destination: &enableHTTPSRedirect,
 	},
+	// TODO: use TOML as the default config format
 	&cli.StringFlag{
 		Name:        "storage",
 		Usage:       "The storage backend to use",
