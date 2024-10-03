@@ -1,5 +1,6 @@
 dist/
 logs
 *.log
-lito.json
+*.json
+*.toml
 .mock.*
