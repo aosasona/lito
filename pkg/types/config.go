@@ -6,10 +6,10 @@ import (
 )
 
 type Config struct {
-	Admin    *Admin              `json:"admin,omitempty"`
-	Services map[string]*Service `json:"services,omitempty"`
-	Proxy    *Proxy              `json:"proxy,omitempty"`
-	rmu      sync.RWMutex        `json:"-"                  mirror:"-"`
+	Admin    *Admin              `json:"admin,omitempty"    toml:"admin"`
+	Services map[string]*Service `json:"services,omitempty" toml:"services"`
+	Proxy    *Proxy              `json:"proxy,omitempty"    toml:"proxy"`
+	rmu      sync.RWMutex        `json:"-"                  toml:"-"        mirror:"-"`
 }
 
 func (c *Config) Lock() { c.rmu.Lock() }
@@ -36,6 +36,7 @@ func (c *Config) Update(config *Config) {
 
 // String converts the config to a JSON string - should only be used for debugging, handle errors properly when persisting
 func (c *Config) String() string {
+	// TODO: check storage format
 	b, err := c.ToJSON()
 	if err != nil {
 		return ""
