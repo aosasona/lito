@@ -11,22 +11,25 @@ RUN CGO_ENABLED=0 go build -o lito ./cmd/lito
 # Copy the binary from the builder image to the final image
 FROM alpine:3.20.3
 
-COPY --from=builder /app/lito /app
+WORKDIR /app
+
+COPY --from=builder /app/lito ./lito
+
+RUN mkdir data
 
 RUN echo $'\
 [admin]\n\
 enabled = false\n\n\
 [proxy]\n\
-config_path = "lito.toml"\n\
 enable_https_redirect = false\n\
 enable_tls = false\n\
 host = "0.0.0.0"\n\
-http_port = 80\n\
+http_port = 8080\n\
 https_port = 443\n\
-storage = "toml"' > lito.toml
+storage = "toml"' > ./data/lito.toml
 
 EXPOSE 80 443
 
-ENTRYPOINT ["/app"]
+ENTRYPOINT ["/app/lito"]
 
-CMD ["run"]
+CMD ["run", "--config", "/app/data/lito.toml", "--log-file", "/app/data/lito.log"]
