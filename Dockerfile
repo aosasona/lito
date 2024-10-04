@@ -13,24 +13,17 @@ FROM alpine:3.20.3
 
 COPY --from=builder /app/lito /app
 
-RUN echo $'{\
-  "admin": {\
-    "enabled": false,\
-    "port": 2024,\
-    "api_key": ""\
-  },\
-  "proxy": {\
-    "host": "0.0.0.0",\
-    "http_port": 80,\
-    "https_port": 443,\
-    "enable_tls": false,\
-    "tls_email": "",\
-    "enable_https_redirect": true,\
-    "config_path": "lito.json",\
-    "storage": "json",\
-    "cnames": null\
-  }\
-}' > lito.json
+RUN echo $'\
+[admin]\n\
+enabled = false\n\n\
+[proxy]\n\
+config_path = "lito.toml"\n\
+enable_https_redirect = false\n\
+enable_tls = false\n\
+host = "0.0.0.0"\n\
+http_port = 80\n\
+https_port = 443\n\
+storage = "toml"' > lito.toml
 
 EXPOSE 80 443
 
