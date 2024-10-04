@@ -70,7 +70,7 @@ var runFlags = []cli.Flag{
 	&cli.BoolFlag{
 		Name:  "enable-tls",
 		Usage: "Enable TLS",
-		Value: true,
+		Value: false,
 	},
 	&cli.BoolFlag{
 		Name:    "enable-https-redirect",
