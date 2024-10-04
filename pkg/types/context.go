@@ -33,7 +33,7 @@ func (c *Context) Header(key, value string) *Context {
 }
 
 func (c *Context) Send(data []byte) {
-	c.Response.Write(data)
+	_, _ = c.Response.Write(data)
 }
 
 // JSON sends a JSON response with status code

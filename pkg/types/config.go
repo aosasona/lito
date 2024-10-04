@@ -2,14 +2,18 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
 	"sync"
+
+	toml "github.com/pelletier/go-toml"
+	"go.trulyao.dev/lito/pkg/ref"
 )
 
 type Config struct {
-	Admin    *Admin              `json:"admin,omitempty"    toml:"admin"`
-	Services map[string]*Service `json:"services,omitempty" toml:"services"`
-	Proxy    *Proxy              `json:"proxy,omitempty"    toml:"proxy"`
-	rmu      sync.RWMutex        `json:"-"                  toml:"-"        mirror:"-"`
+	Admin    *Admin              `json:"admin,omitempty"    toml:"admin,omitempty"`
+	Services map[string]*Service `json:"services,omitempty" toml:"services,omitempty"`
+	Proxy    *Proxy              `json:"proxy,omitempty"    toml:"proxy,omitempty"`
+	rmu      sync.RWMutex        `json:"-"                  toml:"-"                  mirror:"-"`
 }
 
 func (c *Config) Lock() { c.rmu.Lock() }
@@ -34,11 +38,27 @@ func (c *Config) Update(config *Config) {
 	c.Proxy = config.Proxy
 }
 
-// String converts the config to a JSON string - should only be used for debugging, handle errors properly when persisting
+// String converts the config to the appropriate storage format
 func (c *Config) String() string {
-	// TODO: check storage format
-	b, err := c.ToJSON()
+	storage := "json"
+	if c.Proxy != nil {
+		storage = string(ref.Deref(c.Proxy.Storage, "json"))
+	}
+
+	var (
+		b   []byte
+		err error
+	)
+
+	switch storage {
+	case "json", "memory":
+		b, err = c.ToJSON()
+	case "toml":
+		b, err = c.ToTOML()
+	}
+
 	if err != nil {
+		fmt.Printf("error converting config to %s format: %s\n", storage, err)
 		return ""
 	}
 
@@ -48,4 +68,8 @@ func (c *Config) String() string {
 // ToJSON converts the config to a JSON byte array
 func (c *Config) ToJSON() ([]byte, error) {
 	return json.MarshalIndent(c, "", "  ")
+}
+
+func (c *Config) ToTOML() ([]byte, error) {
+	return toml.Marshal(c)
 }
